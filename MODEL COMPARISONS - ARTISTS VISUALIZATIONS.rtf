@@ -1,0 +1,137 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1504\cocoasubrtf830
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\margl1440\margr1440\vieww13020\viewh23220\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 \'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\
+    PLOTS FOR PAPER\
+\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\
+\
+2972 samples\
+\
+MFCC\'92s:\
+		File: MFCC_Merged_Repaired_All_v2.csv\
+		Code: merged_repaired_mfcc_script.py\
+\
+		sample rate: 44100\
+		duration: 5s (from the middle)\
+		hop_length: 2205\
+		n_mfcc: 13\
+		windows of 50ms overlapping in the middle (25ms)\
+		features: 2627\
+\
+STFT:\
+		File: Log_STFT_Merged_Repaired_All_v2.csv\
+		Code: merged_repaired_stft_spectrogram_script.py\
+\
+		sample rate: 44100\
+		duration: 5s (from the middle)\
+		hop_length: 2205\
+		taking power_to_db\
+		windows of 50ms\
+		features: 1025*101 = 103,525\
+\
+1) 	MFCC \'97> TSNE:\
+\
+	Code: mfcc_Merged_Repaired_tsne_javascript_plot_script.py\
+\
+	Use t-sne directly to reduce from 2627 dimensions to 2\
+	n_iterations: default\
+	perplexity: 10\
+	learning rate: 2000\
+	Without standard scaling of MFCC features\
+	\
+	2d_Merged_Repaired_no_dups_mfcc_tsne_prx_10_l-rate_2000_try_3_v2.csv\
+\
+	{\field{\*\fldinst{HYPERLINK "file:///Users/MaSC/Documents/Oscar/2d_Merged_Repaired_no_dups_mfcc_tsne_prx_10_l-rate_2000_try_3_v2_colorsplit.html"}}{\fldrslt 2d_Merged_Repaired_no_dups_mfcc_tsne_prx_10_l-rate_2000_try_3_v2_colorsplit.html}}\
+\
+	{\field{\*\fldinst{HYPERLINK "file:///Users/MaSC/Documents/Oscar/2d_Merged_Repaired_no_dups_mfcc_tsne_prx_10_l-rate_2000_try_3_v2_newstuff3.html"}}{\fldrslt 2d_Merged_Repaired_no_dups_mfcc_tsne_prx_10_l-rate_2000_try_3_v2_newstuff3.html}}\
+\
+\
+2) 	MFCC \'97> TSNE:\
+\
+	Code: mfcc_Merged_Repaired_tsne_javascript_plot_script_modify.py\
+\
+	Use t-sne directly to reduce from 2627 dimensions to 2\
+	n_iterations: 5000\
+	perplexity: 30\
+	learning rate: 200\
+	With standard scaling of MFCC features\
+\
+	2d_Merged_Repaired_no_dups_mfcc_tsne_prx_30_l-rate_200_try_1_v2stdscale.csv\
+\
+	{\field{\*\fldinst{HYPERLINK "file:///Users/MaSC/Documents/Oscar/2d_Merged_Repaired_no_dups_mfcc_tsne_prx_30_l-rate_200_try_1_v2_newstuff3stdscale_colorsplit.html"}}{\fldrslt 2d_Merged_Repaired_no_dups_mfcc_tsne_prx_30_l-	rate_200_try_1_v2_newstuff3stdscale_colorsplit.html}}\
+\
+	{\field{\*\fldinst{HYPERLINK "file:///Users/MaSC/Documents/Oscar/2d_Merged_Repaired_no_dups_mfcc_tsne_prx_30_l-rate_200_try_1_v2_newstuff3stdscale.html"}}{\fldrslt 2d_Merged_Repaired_no_dups_mfcc_tsne_prx_30_l-rate_200_try_1_v2_newstuff3stdscale.html}}\
+\
+\
+3) 	LOG STFT \'97> AUTOENCODER \'97> TSNE\
+\
+	Code: STFT_Merged_Repaired_autoencoder_script.py\
+		STFT_Merged_Repaired_autoencoder_tsne_javascript_plot_script.py\
+		STFT_Merged_Repaired_autoencoder_tsne_javascript_plot_script_colorsplit.py\
+\
+	Use auto encoder to reduce from 1025*101 dimensions to 500\
+	Layers: 5000-2000-500\
+	epochs: 20\
+	activations: relu\
+	last layer activation: sigmoid\
+	optimizer: adam\
+	loss: binary_crossentropy\
+	bath_size: 256\
+	shuffle: True\
+	validation_split: 0.2\
+\
+	500d_Merged_Repaired_no_dups_STFT_autoencoder_try0.csv\
+\
+	Use t-sne to reduce from 500 dimensions to 2\
+	n_iterations: 2000\
+	perplexity: 30\
+	learning rate: 200\
+	With standard scaling of 500d features\
+	\
+	500d_Merged_Repaired_no_dups_STFT_autoencoder_try0_tsne_prx_30_l-rate_200_try_1_stdscale1.csv\
+\
+	{\field{\*\fldinst{HYPERLINK "file:///Users/MaSC/Documents/Oscar/500d_Merged_Repaired_no_dups_STFT_autoencoder_try0_tsne_prx_30_l-rate_200_try_1_colorsplit.html"}}{\fldrslt 500d_Merged_Repaired_no_dups_STFT_autoencoder_try0_tsne_prx_30_l-rate_200_try_1_colorsplit.html}}	\
+	{\field{\*\fldinst{HYPERLINK "file:///Users/MaSC/Documents/Oscar/500d_Merged_Repaired_no_dups_STFT_autoencoder_try0_tsne_prx_30_l-rate_200_try_1_newstuff3_KMeans50stdscale1.html"}}{\fldrslt 500d_Merged_Repaired_no_dups_STFT_autoencoder_try0_tsne_prx_30_l-rate_200_try_1_newstuff3_KMeans50stdscale1.html}}\
+\
+\
+4) 	LOG STFT \'97> AUTOENCODER \'97> TSNE\
+\
+	Code: STFT_Merged_Repaired_autoencoder_script.py\
+		STFT_Merged_Repaired_autoencoder_tsne_javascript_plot_script.py\
+		STFT_Merged_Repaired_autoencoder_tsne_javascript_plot_script_colorsplit.py\
+\
+	Use auto encoder to reduce from 1025*101 dimensions to 500\
+	Layers: 2000-100-50\
+	epochs: 50\
+	activations: relu\
+	last layer activation: sigmoid\
+	optimizer: adam\
+	loss: binary_crossentropy\
+	bath_size: 256\
+	shuffle: True\
+	validation_split: 0.2\
+\
+	50d_Merged_Repaired_no_dups_STFT_autoencoder_try1.csv\
+\
+	Use t-sne to reduce from 50 dimensions to 2\
+	n_iterations: 2000\
+	perplexity: 30\
+	learning rate: 200\
+	With standard scaling of 50d features\
+	\
+	50d_Merged_Repaired_no_dups_STFT_autoencoder_try1_tsne_prx_30_l-rate_200_try_1_stdscale1.csv\
+\
+	{\field{\*\fldinst{HYPERLINK "file:///Users/MaSC/Documents/Oscar/500d_Merged_Repaired_no_dups_STFT_autoencoder_try0_tsne_prx_30_l-rate_200_try_1_colorsplit.html"}}{\fldrslt 50d_Merged_Repaired_no_dups_STFT_autoencoder_try1_tsne_prx_30_l-rate_200_try_1_colorsplit.html}}	\
+	{\field{\*\fldinst{HYPERLINK "file:///Users/MaSC/Documents/Oscar/500d_Merged_Repaired_no_dups_STFT_autoencoder_try0_tsne_prx_30_l-rate_200_try_1_newstuff3_KMeans50stdscale1.html"}}{\fldrslt 50d_Merged_Repaired_no_dups_STFT_autoencoder_try1_tsne_prx_30_l-rate_200_try_1_newstuff3_KMeans50stdscale1.html}}\
+\
+\
+\
+\
+\
+\
+\
+}
