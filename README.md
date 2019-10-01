@@ -50,3 +50,18 @@ Each of the scripts below constitutes an independent module, so that experiments
 2. `2d_visualization.py` and `3d_visualization.py`
 
   - Creates an web visualization for a given 2D or 3D dataset and a set of clustering labels. Given parameters for the small-dimensionality dataset to use and clustering labels to use. Outputs an HTML file in a folder *\visualizations* as `nD_visualization_labels_x_(dataset_id)_data_a_b_c_d.csv` following the conventions described above where *n* is 2 or 3, *x_(dataset_id)* identifies the labels to use and *a_b_c_d* identifies the 2D or 3D dataset to use. 
+
+### Evaluation
+
+- *Classification scores using Cross-Validation:* To balance the classes we take samples from the bigger collection to ensure they are roughly the same size as the smaller collection and do n-fold cross validation on each sample - small collection pair.
+
+- *Clustering on the Arabic collection:* Exploratory analysis of what types of clusters are formed with different techniques.
+
+- *Intensity normalization:* Compute average intensity for each sample and plot it in the visualization. Normalize this value and do the clustering again.
+
+- *Assisted labeling:* Label the collections by using an adaptative clustering method with a human in the loop.
+
+- *Confusion Matrix Analysis:* Display list of songs that are confusing for the models and have experts evaluate their similarity.
+
+- *ROC Curves:* Compute and rank cluster distances to plot the ROC curves for the models.
+
