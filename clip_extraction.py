@@ -1,50 +1,107 @@
 import glob
-import numpy as np
 import os
+import shutil
 import librosa
-from os.path import join, getsize
+import soundfile as sf
 
 
-def process(jfilename):
+# Print types and count for each of the file formats in the server     
+def get_file_formats(server_root_path):
+    print("Getting all file formats...")
+    all_file_formats = {}
+    for root, dirs, files in os.walk(server_root_path):
+        for name in files:
+            filedir = os.path.join(root, name)
+            filename, file_extension = os.path.splitext(filedir)
+            if (file_extension in all_file_formats):
+                all_file_formats[file_extension] += 1
+            else:
+                all_file_formats[file_extension] = 1
+            
+    print('File formats: \n', all_file_formats)
+    return all_file_formats
+
+# Make local copy of folder structure   
+def make_directory_copy(server_root_path, local_root_path):
+    print("Making local copy of folder structure...")
+    for root, dirs, files in os.walk(server_root_path):
+        for directory in dirs:
+            l_root = root.replace(server_root_path+'/', '') # Remove the server_root_path from local copy
+            l_root = l_root.replace(server_root_path, '') # For first children of server_root_path
+            local_dir_path = os.path.join(local_root_path, l_root, directory)
+            if not os.path.exists(local_dir_path):
+                os.makedirs(local_dir_path)
+
+# Make local copy of cover art
+def make_cover_art_copy(server_root_path, local_root_path, image_formats):
+    print("Making local copy of cover art...")
+    for root, dirs, files in os.walk(server_root_path):
+        for name in files:
+            filedir = os.path.join(root, name)
+            filename, file_extension = os.path.splitext(filedir)
+            if file_extension in image_formats:
+                l_root = root.replace(server_root_path+'/', '') # Remove the server_root_path from local copy
+                l_root = l_root.replace(server_root_path, '') # For first children of server_root_path
+                local_img_path = os.path.join(local_root_path, l_root, name)
+
+                # Copy image
+                if not os.path.exists(local_img_path):
+                    img = "img"
+                    shutil.copy(filedir, local_img_path)
+
+# Make local copy of clips extracted from the original audio files
+def extract_all_clips(server_root_path, local_root_path, audio_formats, **kwargs):
+    print("Making local copy of audio clips...")
+    for root, dirs, files in os.walk(server_root_path):
+        for name in files:
+            filedir = os.path.join(root, name)
+            filename, file_extension = os.path.splitext(filedir)
+            if file_extension in audio_formats:
+                l_root = root.replace(server_root_path+'/', '') # Remove the server_root_path from local copy
+                l_root = l_root.replace(server_root_path, '') # For first children of server_root_path
+                local_aud_path = os.path.join(local_root_path, l_root, name)
+
+                # Extract clip using the preferred parameters
+                clip = "clip"
+                extract_single_clip(filedir, local_aud_path, **kwargs)
+
+# Extract a single clip using the specified method (middle, random, chorus, etc.)
+def extract_single_clip(original_audio_path, local_audio_path, **kwargs):
     
-    out = "EastAfricanClips" + jfilename[1:]
-    # print (out)
-    pos = 0
-    for i in range(len(out)):
-        if out[i] == '/':
-            pos = i
-    out2 = out[:pos]
-    for i in range(len(out)):
-        if out[i] == '.':
-            pos = i
-    out3 = out[:pos] + ".wav"
-    print (out3)
+    # Append the extraction parameters to the filename to avoid overwriting
+    filename, file_extension = os.path.splitext(local_audio_path)
+    final_audio_path = filename
+    for key, value in kwargs.items():
+        final_audio_path += ("_" + str(value))
+    final_audio_path += file_extension
 
-    if not os.path.exists(out2):
-    	fduration = librosa.get_duration(filename=jfilename)
-    	y, sr = librosa.load(jfilename, offset = (fduration/2) - 7.5, duration = 15, sr=44100)
-    	os.makedirs(out2)
-    	librosa.output.write_wav(out3, y, sr)
+    if not os.path.exists(final_audio_path):
 
-    else:
-    	fduration = librosa.get_duration(filename=jfilename)
-    	y, sr = librosa.load(jfilename, offset = (fduration/2) - 7.5, duration = 15, sr=44100)
-    	librosa.output.write_wav(out3, y, sr)
+        # Case where clips extracted are from the middle, and given a length
+        if kwargs.get('location') == 'middle':
+            clip_length = kwargs.get('length')
+            if clip_length == None:
+                raise Exception('Provide a length for the extracted clips')
+            full_duration = librosa.get_duration(filename=original_audio_path)
+            y, sr = librosa.load(original_audio_path, offset = (full_duration/2) - (clip_length/2), duration = clip_length, sr=44100)
+            sf.write(final_audio_path, y, sr)
+            print(final_audio_path)
 
 
+# Formats to consider for making a local copy (music and cover art)
+aud_formats = set(['.wav', '.m4a', '.WAV', '.aiff', '.aif'])
+img_formats = set(['.tif', '.jpg', '.JPG', '.png'])
 
-for root, dirs, files in os.walk(".", topdown=False):
-    for name in files:
-        k = os.path.join(root, name)
-        pos = 0
-        for i in range(len(k)):
-            if (k[i]=='.'):
-                pos = i
-        j = k[pos:]
+if __name__ == "__main__":
+    
+    # Need to be absolute paths (start with '/')
+    # Assumes Mac connected to the CDS-Carlos server (might need to modify server_path for Windows)
+    server_path = "/Volumes/CDS-Carlos"
+    local_path = "/Users/masc/Documents/Oscar/MaSC-Music-Visualization-master"
 
-        if (j == ".aiff" or j == ".wav" or j == ".WAV" or j == ".aif"):
-            process(k)
-            # if (k == "./New CDs - Emma /Wa7dek/1 Allah Alalim.aiff"):
-            #     print(k)
-            #     process(k)
+    # all_file_formats = get_file_formats(local_path)
+    # make_directory_copy(server_path, local_path)
+    # make_cover_art_copy(server_path, local_path, img_formats)
+    extract_all_clips(server_path, local_path, aud_formats, location='middle', length=15)
+
 
