@@ -7,7 +7,7 @@ Raw Music files on CDS-Carlos server.
 
 `clip_extraction.py`
 
-Extracts clips from the CDS-Carlos server to a local machine on which to do the computational analysis. Can be given parameters for length of the clips, number of clips, and position of the clips to extract. Saves the files in wav format in the original folder structure.
+Extracts clips from the CDS-Carlos server to a local machine on which to do the computational analysis. Can be given parameters for location of the clips within the original file, number of clips, and length of the clips to extract. Saves the files in wav format in the original folder structure.
 
 `create_ids.py`
 
