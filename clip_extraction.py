@@ -3,13 +3,14 @@ import os
 import shutil
 import librosa
 import soundfile as sf
+from create_ids import get_id
 
 
-# Print types and count for each of the file formats in the server     
-def get_file_formats(server_root_path):
+# Print types and count for each of the file formats in the given path    
+def get_file_formats(root_path):
     print("Getting all file formats...")
     all_file_formats = {}
-    for root, dirs, files in os.walk(server_root_path):
+    for root, dirs, files in os.walk(root_path):
         for name in files:
             filedir = os.path.join(root, name)
             filename, file_extension = os.path.splitext(filedir)
@@ -53,6 +54,7 @@ def make_cover_art_copy(server_root_path, local_root_path, image_formats):
 # Can take parameters for format of clip extraction (eg. location='middle', length='15')
 # Any additional way of clip extraction should be defined by a set of parameters and handled in extract_single_clip
 # eg. if implementing chorus extraction with 10 seconds, pass parameters (location='chorus', length='10')
+# Errors recorded in clip_extraction_error_log.txt
 def extract_all_clips(server_root_path, local_root_path, audio_formats, **kwargs):
     print("Making local copy of audio clips...")
     for root, dirs, files in os.walk(server_root_path):
@@ -117,6 +119,35 @@ def cleanup_audio(local_audio_path, audio_formats):
                 os.remove(filedir)
                 print(filedir)
 
+# Copy all clips with given extraction method (eg. location='middle', length='15') to a single folder
+# Folder name corresponds to extraction method (eg. /middle_15) and clip names are in form UniqueID.wav
+def copy_clips_to_single_folder(local_audio_path, audio_formats, **kwargs):
+
+    extraction_method = ""
+    for key, value in kwargs.items():
+        extraction_method += ("_" + str(value))
+    extraction_method = extraction_method[1:] # Remove first _
+
+    print("Copying audio clips to " + extraction_method + " folder ...")
+
+    if not os.path.exists(extraction_method):
+        os.makedirs(extraction_method)
+    
+    for root, dirs, files in os.walk(local_audio_path):
+        for name in files:
+            filedir = os.path.join(root, name)
+            filename, file_extension = os.path.splitext(filedir)
+            source_name = filename.replace(local_audio_path+'/', '')
+            id_key = source_name[:-1-len(extraction_method)]
+
+            if file_extension in audio_formats and filename[len(filename)-len(extraction_method):] == extraction_method:
+                dest = os.path.join(extraction_method, str(get_id(id_key))) 
+                shutil.copy(filedir, dest + file_extension)
+                print(id_key)
+                print(dest + file_extension)
+
+
+
 # Formats to consider for making a local copy (music and cover art)
 aud_formats = set(['.wav', '.m4a', '.WAV', '.aiff', '.aif'])
 img_formats = set(['.tif', '.jpg', '.JPG', '.png'])
@@ -126,10 +157,15 @@ if __name__ == "__main__":
     # Need to be absolute paths (start with '/')
     # Assumes Mac connected to the CDS-Carlos server (might need to modify server_path for Windows)
     server_path = "/Volumes/CDS-Carlos"
-    local_path = "/Users/masc/Documents/Oscar/MaSC-Music-Visualization-master"
+    local_path = "/Users/masc/Documents/Oscar/MaSC-Music-Visualization-master/Server_Copy"
 
     # all_file_formats = get_file_formats(server_path)
     # make_directory_copy(server_path, local_path)
     # make_cover_art_copy(server_path, local_path, img_formats)
-    extract_all_clips(server_path, local_path, aud_formats, location='middle', length=15)
+    # extract_all_clips(server_path, local_path, aud_formats, location='middle', length=15)
+    # copy_clips_to_single_folder(local_path, ['.wav'], location='middle', length=15)
+
+
+
+
 
