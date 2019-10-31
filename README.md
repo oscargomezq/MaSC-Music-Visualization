@@ -11,11 +11,11 @@ Extracts clips from the CDS-Carlos server to a local machine on which to do the 
 
 `create_ids.py`
 
-Within the local machine, remove duplicate songs, merges artists together, and in general organizes the collection. Can result in a new local folder structure. Outputs a csv file `CDS-Carlos_song_ids.csv` where each clip is assigned a **Unique-ID** that will be used for the rest of the analysis, the file path to access it, and the metadata that can be extracted from it (Collection, Artist, Album, Genre, Year, Recording Method, Annotations, etc.).
+Outputs a csv file `CDS-Carlos_song_ids.csv` where each clip is assigned a **Unique-ID** that will be used for the rest of the analysis, the file path to access it, and the metadata that can be extracted from it (Collection, Artist, Album, Genre, Year, Recording Method, Annotations, etc.).
   
 `corpus_statistics.py`
 
-Computes statistics from the `song_ids.csv` file, such as number of Artists and Songs in each collection that can be presented as a table in the paper. Outputs a csv file `corpus_statistics.csv`.
+Within the local machine, remove duplicate songs, merges artists together, and in general organizes the collection. Computes statistics from the `CDS-Carlos_song_ids.csv` file, such as number of Artists and Songs in each collection that can be presented as a table in the paper. Outputs a csv file `corpus_statistics.csv`.
 
 ## Computational Analysis
 
