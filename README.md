@@ -25,7 +25,7 @@ Each of the scripts below constitutes an independent module, so that experiments
 
 1. `preprocessing.py`
 
-  - Defines parameters to use for the computational analysis such as sampling rate and window size. Saves them in JSON format in a folder *\preprocessing_parameters* as `parameters_preprocessing_x.json` where *x* is the *x*th option for parameters in step 1.
+  - Defines parameters to use for the computational analysis such as sampling rate and window size. Saves them in JSON format in a folder *\preprocessing_parameters* as `preprocessing_parameters_x.json` where *x* is the *x*th option for parameters in step 1.
 
 2. `feature_extraction.py`
 
