@@ -45,4 +45,4 @@ if __name__ == "__main__":
     server_path = "/Volumes/CDS-Carlos"
     local_path = "/Users/masc/Documents/Oscar/MaSC-Music-Visualization-master/Server_Copy"
 
-    assign_unique_ids(server_path, aud_formats, 'CDS-Carlos_song_ids_backup.csv')
+    assign_unique_ids(server_path, aud_formats, 'CDS-Carlos_song_ids.csv')
