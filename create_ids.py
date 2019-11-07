@@ -20,7 +20,7 @@ def assign_unique_ids(server_root_path, audio_formats, ids_csv_path):
                 id_key = os.path.splitext(path_for_id)[0] # Remove extension for ID generation
                 # Assign unique ID
                 unique_id = get_id(id_key)
-                with open(ids_csv_path, 'a') as ids_file:
+                with open(ids_csv_path, 'a', encoding='utf-8') as ids_file:
                     ids_file.write(str(unique_id) + "," + "\"" + id_key + "\"" + "\n") # Enclose audio path in " " for handling commas and quotes within filepaths
 
 # Get Unique ID from string

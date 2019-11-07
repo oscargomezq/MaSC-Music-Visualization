@@ -88,19 +88,19 @@ def extract_single_clip(original_audio_path, local_audio_path, **kwargs):
                 raise Exception('Provide a length for the extracted clips')
             full_duration = librosa.get_duration(filename=original_audio_path)
             if full_duration < clip_length:
-                with open(error_log_path, 'a') as error_log_f:
+                with open(error_log_path, 'a', encoding='utf-8') as error_log_f:
                     error_log_f.write("Clip length error: " + '\n' + final_audio_path + '\n')
                 return
             try:
                 y, sr = librosa.load(original_audio_path, offset = (full_duration/2) - (clip_length/2), duration = clip_length, sr=44100)
             except:
-                with open(error_log_path, 'a') as error_log_f:
+                with open(error_log_path, 'a', encoding='utf-8') as error_log_f:
                     error_log_f.write("Reading file error: " + '\n' + final_audio_path + '\n')
                 return
             try:
                 sf.write(final_audio_path, y, sr, 'PCM_16')
             except:
-                with open(error_log_path, 'a') as error_log_f:
+                with open(error_log_path, 'a', encoding='utf-8') as error_log_f:
                     error_log_f.write("Writing file error: " + '\n' + final_audio_path + '\n')
                 return
             print(final_audio_path)
