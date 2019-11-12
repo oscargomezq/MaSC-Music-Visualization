@@ -4,11 +4,11 @@ import pandas as pd
 import os
 import json
 import librosa
-from preprocessing import save_params, check_repeated_params
+from utils import save_params, check_repeated_params, unpack_params
 
 # Extract all the mfccs from the audio files in audio_path to the save_to_path directory
 # Takes in the kwargs used for the experiment (sr, hop_length, etc.)
-def extract_mfcc(save_to_path, audio_path, **kwargs):
+def extract_mfcc (save_to_path, audio_path, **kwargs):
     
     mfcc_arr = []
     for root, dirs, files in os.walk(audio_path):
@@ -44,42 +44,36 @@ def extract_mfcc(save_to_path, audio_path, **kwargs):
     mfcc_arr.to_csv(save_to_path, index=False, header=False)
 
 
-def extract_spectrogram(filename):
+def extract_spectrogram (filename):
     pass
 
 # Perform feature extraction on the audio files in audio_path
-# pre_path is the path where the preprocessing parameters are stored
-# ft_path is the path where the feature extraction parameters are stored
+# params_path is a list with paths to where the parameters for preprocessing, feature extraction, etc. are stored
 # params list is the combination of parameters to be used for this step
-def perform_feature_extraction(pre_path, ft_path, params_list, audio_path):
+# audio_path is the folder of clips to use (eg. middle_15)
+def perform_feature_extraction (params_path, params_list, audio_path):
 
     save_to = 'full_dataset'
     for i in params_list:
         save_to += '_' + str(i)
     save_to += '.csv'
-    save_to = os.path.join(ft_path, save_to)
+    save_to = os.path.join(params_path[-1], save_to)
 
-    with open(os.path.join(pre_path, 'parameters_' + str(params_list[0]) + '.json'), 'r') as pre_f:
-        tmp = pre_f.read()
-        pre_param_dict = json.loads(tmp)
-
-    with open(os.path.join(ft_path, 'parameters_' + str(params_list[1]) + '.json'), 'r') as ft_f:
-        tmp = ft_f.read()
-        ft_param_dict = json.loads(tmp)
-
-    curr_params = {**pre_param_dict , **ft_param_dict}
+    curr_params = unpack_params(params_path, params_list)
 
     print("Performing feature extraction...")
     print("Using parameters: " + str(curr_params))
     print("Saving at: " + save_to)
 
+    if os.path.exists(save_to):
+        print ("Feature extraction for these parameters already done!")
+        return
+
     # Extract features for a clip using the preferred parameters
     if curr_params['method'] == "mfcc":
         extract_mfcc(save_to, audio_path, **curr_params)
     elif curr_params['method'] == "spectrogram":
-        extract_spectrogram(save_to, audio_path, **curr_params)
-
-    
+        extract_spectrogram(save_to, audio_path, **curr_params) 
         
 
 if __name__ == "__main__":
@@ -87,6 +81,7 @@ if __name__ == "__main__":
     # Local folders for preprocessing parameters
     preproc_path = 'preprocessing'
     feature_ext_path = 'full_datasets'
+    params_path = [preproc_path, feature_ext_path]
 
     # Define possible parameters for feature extraction
     for method in ['mfcc', 'spectrogram']:
@@ -96,10 +91,11 @@ if __name__ == "__main__":
     # Define a set of preprocessing parameters and a set of feature extraction parameters to use
     preproc_params = 2
     feature_ext_params = 1
+    params_list = [preproc_params, feature_ext_params]
 
     # Define the audio clips to be used
     audio_path = 'middle_15'
 
-    perform_feature_extraction(preproc_path, feature_ext_path, [preproc_params, feature_ext_params], audio_path)
+    perform_feature_extraction(params_path, params_list, audio_path)
 
 

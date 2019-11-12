@@ -34,13 +34,13 @@ def check_repeated_params (params_root, param_dict):
 if __name__ == "__main__":
 
     # Local folder for preprocessing parameters
-    preproc_params_path = 'preprocessing'
+    preproc_path = 'preprocessing'
 
     # Define possible parameters for preprocessing
     param_set_1 = {'sr': 22050, 'window_size': 23, 'hop_length': 512}
     param_set_2 = {'sr': 44100, 'window_size': 50, 'hop_length': 2205}
 	# Set the hop length; at 22050 Hz, 512 samples ~= 23ms  # at 44100Hz, for 50ms use 2205 as hop_length
 
-    save_params(preproc_params_path, **param_set_1)
-    save_params(preproc_params_path, **param_set_2)
+    save_params(preproc_path, **param_set_1)
+    save_params(preproc_path, **param_set_2)
 

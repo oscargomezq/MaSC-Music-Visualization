@@ -6,7 +6,7 @@ import uuid
 # The ID is generated exclusively from the original folder structure in the server
 # See https://stackoverflow.com/a/51550196
 # We used a base ID (generated with uuid1) that defines our custom namespace
-def assign_unique_ids(server_root_path, audio_formats, ids_csv_path):
+def assign_unique_ids (server_root_path, audio_formats, ids_csv_path):
 
     print("Assigning Unique IDs...")
     for root, dirs, files in os.walk(server_root_path):
@@ -27,7 +27,7 @@ def assign_unique_ids(server_root_path, audio_formats, ids_csv_path):
 # Tne string id_key must be the path in the CDS-Carlos server, without /Volumes/CDS-Carlos/ and without the file extension
 # The BASE_ID must be the one provided below for reproducibility!
 # BASE_ID: 942f26ce-fa3e-11e9-a5be-685b35c80712
-def get_id(id_key):
+def get_id (id_key):
     # DO NOT CHANGE, generated on OCT 29 / 2019 on CDS Computer
     BASE_ID = uuid.UUID('{942f26ce-fa3e-11e9-a5be-685b35c80712}')
     unique_id = uuid.uuid5(BASE_ID, id_key)

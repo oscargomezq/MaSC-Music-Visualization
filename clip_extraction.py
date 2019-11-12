@@ -7,7 +7,7 @@ from create_ids import get_id
 
 
 # Print types and count for each of the file formats in the given path    
-def get_file_formats(root_path):
+def get_file_formats (root_path):
     print("Getting all file formats...")
     all_file_formats = {}
     for root, dirs, files in os.walk(root_path):
@@ -23,7 +23,7 @@ def get_file_formats(root_path):
     return all_file_formats
 
 # Make local copy of folder structure   
-def make_directory_copy(server_root_path, local_root_path):
+def make_directory_copy (server_root_path, local_root_path):
     print("Making local copy of folder structure...")
     for root, dirs, files in os.walk(server_root_path):
         for directory in dirs:
@@ -34,7 +34,7 @@ def make_directory_copy(server_root_path, local_root_path):
                 os.makedirs(local_dir_path)
 
 # Make local copy of cover art
-def make_cover_art_copy(server_root_path, local_root_path, image_formats):
+def make_cover_art_copy (server_root_path, local_root_path, image_formats):
     print("Making local copy of cover art...")
     for root, dirs, files in os.walk(server_root_path):
         for name in files:
@@ -54,7 +54,7 @@ def make_cover_art_copy(server_root_path, local_root_path, image_formats):
 # Any additional way of clip extraction should be defined by a set of parameters and handled in extract_single_clip
 # eg. if implementing chorus extraction with 10 seconds, pass parameters (location='chorus', length='10')
 # Errors recorded in clip_extraction_error_log.txt
-def extract_all_clips(server_root_path, local_root_path, audio_formats, **kwargs):
+def extract_all_clips (server_root_path, local_root_path, audio_formats, **kwargs):
     print("Making local copy of audio clips...")
     for root, dirs, files in os.walk(server_root_path):
         for name in files:
@@ -69,7 +69,7 @@ def extract_all_clips(server_root_path, local_root_path, audio_formats, **kwargs
                 extract_single_clip(filedir, local_aud_path, **kwargs)
 
 # Extract a single clip using the specified method (middle, random, chorus, etc.) in '.wav' format
-def extract_single_clip(original_audio_path, local_audio_path, **kwargs):
+def extract_single_clip (original_audio_path, local_audio_path, **kwargs):
     
     # Append the extraction parameters to the filename to avoid overwriting
     filename, file_extension = os.path.splitext(local_audio_path)
@@ -108,7 +108,7 @@ def extract_single_clip(original_audio_path, local_audio_path, **kwargs):
         # Implement here other cases such as chorus extraction
         
 # Delete all local audio files from the given directory
-def cleanup_audio(local_audio_path, audio_formats):
+def cleanup_audio (local_audio_path, audio_formats):
     print("Cleaning local copy of audio clips...")
     for root, dirs, files in os.walk(local_audio_path):
         for name in files:
@@ -120,7 +120,7 @@ def cleanup_audio(local_audio_path, audio_formats):
 
 # Copy all clips with given extraction method (eg. location='middle', length='15') to a single folder
 # Folder name corresponds to extraction method (eg. /middle_15) and clip names are in form UniqueID.wav
-def copy_clips_to_single_folder(local_audio_path, audio_formats, **kwargs):
+def copy_clips_to_single_folder (local_audio_path, audio_formats, **kwargs):
 
     extraction_method = ""
     for key, value in kwargs.items():
