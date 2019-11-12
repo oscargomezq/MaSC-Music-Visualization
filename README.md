@@ -37,7 +37,7 @@ Each of the scripts below constitutes an independent module, so that experiments
 
 4. `small_dimension.py`
 
-  - Reduces the dimensionality of a given mid-dimensionality dataset. Given parameters for the method to use (PCA, tSNE, etc.). Outputs a small-dimensionality dataset in the same format as a working dataset but with 2 or 3 features per row. It is saved in csv format in a folder *\small_datasets* as `small_dataset_a_b_c_d.csv` following the convention described above where *d* is the *d*th option for parameters in step 4. The parameters for this step are stored as `parameters_x.json` where *x* is the *x*th option for parameters in step 4. The results of this step are 2D and 2D dimensionality files that can be visualized with the `2d_visualization.py` or `3d_visualization.py` scripts.
+  - Reduces the dimensionality of a given mid-dimensionality dataset. Given parameters for the method to use (PCA, tSNE, etc.). Outputs a small-dimensionality dataset in the same format as a working dataset but with 2 or 3 features per row. It is saved in csv format in a folder *\small_datasets* as `small_dataset_a_b_c_d.csv` following the convention described above where *d* is the *d*th option for parameters in step 4. The parameters for this step are stored as `parameters_x.json` where *x* is the *x*th option for parameters in step 4. The results of this step are 2D and 3D dimensionality files that can be visualized with the `2d_visualization.py` or `3d_visualization.py` scripts.
 
 ### Clustering and Visualization
 
