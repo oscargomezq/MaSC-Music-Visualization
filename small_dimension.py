@@ -1,10 +1,6 @@
-import glob
 import numpy as np
 import pandas as pd
 import os
-import json
-import librosa
-import shutil
 from sklearn.manifold import TSNE
 from utils import save_params, check_repeated_params, unpack_params
 
@@ -22,7 +18,7 @@ def tsne_small (save_to_path, mid_dataset_path, **kwargs):
                       learning_rate=d['learning_rate'], n_iter=d['iterations'], random_state=d['random_state'])
     small_X = tsne_model.fit_transform(mid_X)
 
-    small_X = mid_X[:,[0,1]]
+    # small_X = mid_X[:,[0,1]]
     small_X = pd.DataFrame(np.hstack((unique_ids,small_X)))
     small_X.to_csv(save_to_path, index=False, header=False)
 
@@ -73,17 +69,17 @@ if __name__ == "__main__":
     small_dim_path = 'small_datasets'
     params_path = [preproc_path, feature_ext_path, mid_dim_path, small_dim_path]
 
-    # Define possible parameters for feature extraction
+    # Define possible parameters for small dimensionality reduction
     param_set_1 = {'small_algorithm': 'tsne', 'components': 2, 'perplexity': 30, 'learning_rate': 200, 'iterations': 5000, 'random_state': 0}
     param_set_2 = {'small_algorithm': 'tsne', 'components': 3, 'perplexity': 30, 'learning_rate': 200, 'iterations': 5000, 'random_state': 0}
     save_params(small_dim_path, **param_set_1)
     save_params(small_dim_path, **param_set_2)
     
-    # Define a set of preprocessing parameters and a set of feature extraction parameters to use
+    # Define the sets of parameters to use
     preproc_params = 2
     feature_ext_params = 1
     mid_dim_params = 1
-    small_dim_params = 1
+    small_dim_params = 2
     params_list = [preproc_params, feature_ext_params, mid_dim_params, small_dim_params]
 
     reduce_to_small_dimension(params_path, params_list)

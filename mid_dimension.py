@@ -1,9 +1,6 @@
-import glob
 import numpy as np
 import pandas as pd
 import os
-import json
-import librosa
 import shutil
 from utils import save_params, check_repeated_params, unpack_params
 
@@ -62,12 +59,12 @@ if __name__ == "__main__":
     mid_dim_path = 'mid_datasets'
     params_path = [preproc_path, feature_ext_path, mid_dim_path]
 
-    # Define possible parameters for feature extraction
+    # Define possible parameters for middle dimensionality reduction
     param_set_1 = {'mid_algorithm': 'identity'}
 
     save_params(mid_dim_path, **param_set_1)
     
-    # Define a set of preprocessing parameters and a set of feature extraction parameters to use
+    # Define the sets of parameters to use
     preproc_params = 2
     feature_ext_params = 1
     mid_dim_params = 1
