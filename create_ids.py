@@ -1,5 +1,6 @@
 import os
 import uuid
+import pandas as pd
 
 # Assign each song in the server a Unique ID to use for the analysis
 # The ID is generated exclusively from the original folder structure in the server
@@ -26,7 +27,7 @@ def assign_unique_ids (server_root_path, audio_formats, ids_csv_path):
                     ids_file.write(str(unique_id) + "," + "\"" + id_key + "\"" + "\n") # Enclose audio path in " " for handling commas and quotes within filepaths
 
 # Get Unique ID from string
-# Tne string id_key must be the path in the CDS-Carlos server, without /Volumes/CDS-Carlos/ and without the file extension
+# The string id_key must be the path in the CDS-Carlos server, without /Volumes/CDS-Carlos/ and without the file extension
 # The BASE_ID must be the one provided below for reproducibility!
 # BASE_ID: 942f26ce-fa3e-11e9-a5be-685b35c80712
 def get_id (id_key):
@@ -34,6 +35,19 @@ def get_id (id_key):
     BASE_ID = uuid.UUID('{942f26ce-fa3e-11e9-a5be-685b35c80712}')
     unique_id = uuid.uuid5(BASE_ID, id_key)
     return unique_id
+
+# Initializes a dictionary to get the filenames from the Unique IDs
+def init_unique_id_dict (ids_csv_path):
+    ids_df = pd.read_csv(ids_csv_path, header=None, encoding='utf-8')
+    ids_dict = dict(zip(ids_df.iloc[:,1], ids_df.iloc[:,0])) 
+    return ids_dict
+
+# Get id_key in string format from Unique ID
+# The string id_key is the path in the CDS-Carlos server, without /Volumes/CDS-Carlos/ and without the file extension
+def get_key (unique_id, ids_dict):
+    unique_id = str(unique_id)
+    key = str(ids_dict[unique_id])
+    return key
 
 
 # Formats to consider for making a local copy (music and cover art)
