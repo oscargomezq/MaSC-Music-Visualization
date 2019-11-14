@@ -8,6 +8,9 @@ import uuid
 def assign_unique_ids (server_root_path, audio_formats, ids_csv_path):
 
     print("Assigning Unique IDs...")
+    if os.path.exists(ids_csv_path):
+        print ("Unique IDs already created at " + ids_csv_path + "!")
+        return
     for root, dirs, files in os.walk(server_root_path):
         for name in files:
             filedir = os.path.join(root, name)
