@@ -56,7 +56,7 @@ if __name__ == "__main__":
     copy_clips_to_single_folder(local_path, ['.wav'], location='middle', length=15)
 
     user_confirmation()
-    assign_unique_ids(server_path, aud_formats, 'CDS-Carlos_song_ids.csv')
+    assign_unique_ids(server_path, aud_formats, 'CDS-Carlos_song_ids_test.csv')
 
 
     

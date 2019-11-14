@@ -131,17 +131,15 @@ def copy_clips_to_single_folder (local_audio_path, audio_formats, **kwargs):
     if not os.path.exists(extraction_method):
         os.makedirs(extraction_method)
     
-    for root, dirs, files in os.walk(local_audio_path):
-        for name in files:
-            filedir = os.path.join(root, name)
-            filename, file_extension = os.path.splitext(filedir)
-            source_name = filename.replace(local_audio_path+'/', '')
-            id_key = source_name[:-1-len(extraction_method)]
-            if file_extension in audio_formats and filename[len(filename)-len(extraction_method):] == extraction_method:
-                dest = os.path.join(extraction_method, str(get_id(id_key))) 
-                shutil.copy(filedir, dest + file_extension)
-                print(id_key)
-                print(dest + file_extension)
+        for root, dirs, files in os.walk(local_audio_path):
+            for name in files:
+                filedir = os.path.join(root, name)
+                filename, file_extension = os.path.splitext(filedir)
+                source_name = filename.replace(local_audio_path+'/', '')
+                id_key = source_name[:-1-len(extraction_method)]
+                if file_extension in audio_formats and filename[len(filename)-len(extraction_method):] == extraction_method:
+                    dest = os.path.join(extraction_method, str(get_id(id_key))) 
+                    shutil.copy(filedir, dest + file_extension)
 
 
 
