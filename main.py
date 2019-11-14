@@ -32,9 +32,6 @@ feature_ext_path = 'full_datasets'
 mid_dim_path = 'mid_datasets'
 small_dim_path = 'small_datasets'
 
-# List containing the parameter folder paths
-params_path = [preproc_path, feature_ext_path, mid_dim_path, small_dim_path]
-
 
 if __name__ == "__main__":
     
@@ -89,6 +86,9 @@ if __name__ == "__main__":
     # Define the audio clips to be used
     audio_path = 'middle_15'
 
+    # List containing the parameter folder paths
+    params_path = [preproc_path, feature_ext_path]
+
     perform_feature_extraction(params_path, params_list, audio_path)
 
 
@@ -106,6 +106,9 @@ if __name__ == "__main__":
     feature_ext_params = 1
     mid_dim_params = 1
     params_list = [preproc_params, feature_ext_params, mid_dim_params]
+
+    # List containing the parameter folder paths
+    params_path = [preproc_path, feature_ext_path, mid_dim_path]
 
     reduce_to_mid_dimension(params_path, params_list)
 
@@ -126,5 +129,8 @@ if __name__ == "__main__":
     mid_dim_params = 1
     small_dim_params = 2
     params_list = [preproc_params, feature_ext_params, mid_dim_params, small_dim_params]
+
+    # List containing the parameter folder paths
+    params_path = [preproc_path, feature_ext_path, mid_dim_path, small_dim_path]
 
     reduce_to_small_dimension(params_path, params_list)
