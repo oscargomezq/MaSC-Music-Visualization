@@ -1,4 +1,3 @@
-
 import sys
 from utils import save_params, check_repeated_params, unpack_params, get_id
 from clip_extraction import get_file_formats, make_directory_copy, make_cover_art_copy, extract_all_clips, copy_clips_to_single_folder
