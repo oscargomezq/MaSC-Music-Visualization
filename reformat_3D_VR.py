@@ -15,7 +15,7 @@ def n2id (name):
 	# print(name)
 	key = 0
 	try:
-		key = get_key(name, ids_dict)
+		key = get_id(name, ids_dict)
 	except:
 		with open ('3D_VR_Error_Log.txt', 'a', encoding='utf-8') as error_log:
 			error_log.write(name + '\n')

@@ -2,7 +2,7 @@ import os
 import json
 import pandas as pd
 from create_ids import get_id, get_key, init_unique_id_dict
-from preprocessing import save_params, check_repeated_params
+from preprocessing import save_params, check_repeated_params, song_subset
 
 # params_path is a list with paths to where the parameters for preprocessing, feature extraction, etc. are stored
 # params list is the combination of parameters to be used for this step

@@ -39,7 +39,7 @@ def get_id (id_key):
 # Initializes a dictionary to get the filenames from the Unique IDs
 def init_unique_id_dict (ids_csv_path):
     ids_df = pd.read_csv(ids_csv_path, header=None, encoding='utf-8')
-    ids_dict = dict(zip(ids_df.iloc[:,1], ids_df.iloc[:,0])) 
+    ids_dict = dict(zip(ids_df.iloc[:,0], ids_df.iloc[:,1]))
     return ids_dict
 
 # Get id_key in string format from Unique ID

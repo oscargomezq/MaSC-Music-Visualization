@@ -1,6 +1,6 @@
 import os
 import json
-
+from utils import get_key
 
 # Define the preprocessing parameters for the experiment
 # Saved in the params_root directory as a JSON file
@@ -29,6 +29,35 @@ def check_repeated_params (params_root, param_dict):
                     next_idx += 1
     return False, next_idx
 
+# Return a set of Unique-IDs for the songs that correspond to the selection of server subpaths
+# E.g. when server_subpaths == FINAL_East_African, we are only using the subpath FINAL_East African Popular Music Archive from 2_EastAfricanArchive
+def song_subset (audio_path, server_subpaths='All', ids_dict=None):
+
+    s_subset = []
+
+    if server_subpaths == 'All':
+        for root, dirs, files in os.walk(audio_path):
+            for name in files:
+                filedir = os.path.join(root, name)
+                filename, file_extension = os.path.splitext(filedir)
+                unique_id, _ = os.path.splitext(name)
+                if file_extension in ['.wav']:
+                    s_subset.append((unique_id, filedir))
+        return set(s_subset)
+
+    elif server_subpaths == 'FINAL_East African Popular Music Archive':
+        for root, dirs, files in os.walk(audio_path):
+            for name in files:
+                filedir = os.path.join(root, name)
+                filename, file_extension = os.path.splitext(filedir)
+                unique_id, _ = os.path.splitext(name)
+                key = get_key(unique_id, ids_dict)
+                if "2_EastAfricanArchive" in key and "FINAL_East African Popular Music Archive" not in key:
+                    continue
+                elif file_extension in ['.wav']:
+                    s_subset.append((unique_id, filedir))
+        return set(s_subset)
+
 
 if __name__ == "__main__":
 
@@ -36,10 +65,19 @@ if __name__ == "__main__":
     preproc_path = 'preprocessing'
 
     # Define possible parameters for preprocessing
-    param_set_1 = {'sr': 22050, 'window_size': 23, 'hop_length': 512}
-    param_set_2 = {'sr': 44100, 'window_size': 50, 'hop_length': 2205}
+    param_set_1 = {'sr': 22050, 'window_size': 23, 'hop_length': 512, 'server_subpaths': 'All'}
+    param_set_2 = {'sr': 44100, 'window_size': 50, 'hop_length': 2205, 'server_subpaths': 'All'}
+    param_set_3 = {'sr': 44100, 'window_size': 50, 'hop_length': 2205, 'server_subpaths': 'FINAL_East African Popular Music Archive'}
 	# Set the hop length; at 22050 Hz, 512 samples ~= 23ms  # at 44100Hz, for 50ms use 2205 as hop_length
 
     save_params(preproc_path, **param_set_1)
     save_params(preproc_path, **param_set_2)
+    save_params(preproc_path, **param_set_3)
+
+
+
+    # from utils import init_unique_id_dict
+
+    # ids_dict = init_unique_id_dict('CDS-Carlos_song_ids.csv')
+    # print(len(song_subset('middle_15', 'FINAL_East African Popular Music Archive', ids_dict)))
 
