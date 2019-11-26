@@ -15,3 +15,14 @@ def unpack_params (param_paths, params_list):
 	        curr_params.update(json.loads(tmp))
 	return curr_params
 
+def user_confirmation(msg=None):
+	print()
+	if msg==None:
+		inp = input("Enter 'q' to quit or any other key to continue: ")
+	else:
+		inp = input(msg + "\nor enter 'q' to quit: ")
+	print()
+	if inp == 'q':
+		sys.exit()
+	else:
+		return inp

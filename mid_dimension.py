@@ -44,7 +44,7 @@ def reduce_to_mid_dimension (params_path, params_list):
         print ("Middle dimensionality reduction for these parameters already done!")
         return
 
-    # Extract features for a clip using the preferred parameters
+    # Perform dimensionality reduction using the preferred parameters
     if curr_params['mid_algorithm'] == "identity":
         identity_mid(save_to, load_from, **curr_params)
     elif curr_params['mid_algorithm'] == "pca":

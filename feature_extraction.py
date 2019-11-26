@@ -37,11 +37,13 @@ def extract_mfcc (ids_dict, save_to_path, audio_path, **kwargs):
     print(mfcc_arr)
     mfcc_arr.to_csv(save_to_path, index=False, header=False)
 
-
+# Extract the spectrogram from the audio files in audio_path to the save_to_path directory
+# Takes in the kwargs used for the experiment (sr, hop_length, etc.)
 def extract_spectrogram (save_to_path, audio_path, **kwargs):
     pass
 
 # Perform feature extraction on the audio files in audio_path
+# ids_dict is the dictionary to retrieve original filenames from the Unique-ID
 # params_path is a list with paths to where the parameters for preprocessing, feature extraction, etc. are stored
 # params list is the combination of parameters to be used for this step
 # audio_path is the folder of clips to use (eg. middle_15)
@@ -90,6 +92,7 @@ if __name__ == "__main__":
     # Define the audio clips to be used
     audio_path = 'middle_15'
 
+    # Initialize the key - id dictionary
     from utils import init_unique_id_dict
     ids_dict = init_unique_id_dict('CDS-Carlos_song_ids.csv')
 

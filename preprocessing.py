@@ -30,6 +30,7 @@ def check_repeated_params (params_root, param_dict):
     return False, next_idx
 
 # Return a set of Unique-IDs for the songs that correspond to the selection of server subpaths
+# The elements in the set are tuples of the form (unique_id, filedir) where filedir is the path to the audio clip
 # E.g. when server_subpaths == FINAL_East_African, we are only using the subpath FINAL_East African Popular Music Archive from 2_EastAfricanArchive
 def song_subset (audio_path, server_subpaths='All', ids_dict=None):
 
@@ -45,7 +46,7 @@ def song_subset (audio_path, server_subpaths='All', ids_dict=None):
                     s_subset.append((unique_id, filedir))
         return set(s_subset)
 
-    elif server_subpaths == 'FINAL_East African Popular Music Archive':
+    elif server_subpaths == 'FINAL_East African Popular Music Archive' and ids_dict != None:
         for root, dirs, files in os.walk(audio_path):
             for name in files:
                 filedir = os.path.join(root, name)
@@ -73,11 +74,4 @@ if __name__ == "__main__":
     save_params(preproc_path, **param_set_1)
     save_params(preproc_path, **param_set_2)
     save_params(preproc_path, **param_set_3)
-
-
-
-    # from utils import init_unique_id_dict
-
-    # ids_dict = init_unique_id_dict('CDS-Carlos_song_ids.csv')
-    # print(len(song_subset('middle_15', 'FINAL_East African Popular Music Archive', ids_dict)))
 

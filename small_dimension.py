@@ -22,9 +22,9 @@ def tsne_small (save_to_path, mid_dataset_path, **kwargs):
     small_X = pd.DataFrame(np.hstack((unique_ids,small_X)))
     small_X.to_csv(save_to_path, index=False, header=False)
 
+# Does pca mapping from middle dimensionality to small dimensionality
 def pca_small (filename):
     pass
-
 
 # Perform dimensionality reduction from middle dimensionality to small dimensionality
 # params_path is a list with paths to where the parameters for preprocessing, feature extraction, etc. are stored
@@ -53,7 +53,7 @@ def reduce_to_small_dimension (params_path, params_list):
         print ("Small dimensionality reduction for these parameters already done!")
         return
 
-    # Extract features for a clip using the preferred parameters
+    # Perform dimensionality reduction using the preferred parameters
     if curr_params['small_algorithm'] == "tsne":
         tsne_small(save_to, load_from, **curr_params)
     elif curr_params['small_algorithm'] == "pca":

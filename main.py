@@ -1,20 +1,11 @@
 import sys
-from utils import save_params, check_repeated_params, unpack_params, get_id, init_unique_id_dict
+from utils import save_params, check_repeated_params, unpack_params, get_id, init_unique_id_dict, user_confirmation
 from clip_extraction import get_file_formats, make_directory_copy, make_cover_art_copy, extract_all_clips, copy_clips_to_single_folder
 from create_ids import assign_unique_ids
 from feature_extraction import perform_feature_extraction
 from mid_dimension import reduce_to_mid_dimension
 from small_dimension import reduce_to_small_dimension
 
-def user_confirmation(msg=None):
-	print()
-	if msg==None:
-		inp = input("Enter 'q' to quit or any other key to continue: ")
-	else:
-		inp = input(msg)
-	print()
-	if inp == 'q':
-		sys.exit()
 
 # Formats to consider for making a local copy (music and cover art)
 aud_formats = set(['.wav', '.m4a', '.WAV', '.aiff', '.aif'])
@@ -130,7 +121,7 @@ if __name__ == "__main__":
     preproc_params = 3
     feature_ext_params = 1
     mid_dim_params = 1
-    small_dim_params = 2
+    small_dim_params = 1
     params_list = [preproc_params, feature_ext_params, mid_dim_params, small_dim_params]
 
     # List containing the parameter folder paths
