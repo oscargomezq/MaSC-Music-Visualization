@@ -45,11 +45,11 @@ Each of the scripts below constitutes an independent module, so that experiments
 
 1. `clustering.py`
 
-  - Performs clustering of a given dataset. Given parameters for the method to use (k-means, spectral, etc.) and the full, mid, or small dimensionality dataset to use. Outputs a label for each element identified by a **Unique-ID**. It is saved in csv format in a folder *\clustering_labels* as `cluster_labels_x_(dataset_id).csv` following the convention described above where *dataset_id* is the combination of parameters for the dataset and *x* is the *x*th option for parameters in the clustering step. The parameters for this step are stored as `parameters_x.json` where *x* is the *x*th option for parameters in the clustering step.
+  - Performs clustering of a given dataset. Given parameters for the method to use (k-means, spectral, etc.) and the full, mid, or small dimensionality dataset to use. Outputs a label for each element identified by a **Unique-ID**. It is saved in csv format in a folder *\clustering_labels* as `cluster_labels_(dataset_id)_x.csv` following the convention described above where *dataset_id* is the combination of parameters for the dataset and *x* is the *x*th option for parameters in the clustering step. The parameters for this step are stored as `parameters_x.json` where *x* is the *x*th option for parameters in the clustering step.
 
 2. `2d_visualization.py` and `3d_visualization.py`
 
-  - Creates an web visualization for a given 2D or 3D dataset and a set of clustering labels. Given parameters for the small-dimensionality dataset to use and clustering labels to use. Outputs an HTML file in a folder *\visualizations* as `nD_visualization_labels_x_(dataset_id)_data_a_b_c_d.csv` following the conventions described above where *n* is 2 or 3, *x_(dataset_id)* identifies the labels to use and *a_b_c_d* identifies the 2D or 3D dataset to use. 
+  - Creates an web visualization for a given 2D or 3D dataset and a set of clustering labels. Given parameters for the small-dimensionality dataset to use and clustering labels to use. Outputs an HTML file in a folder *\visualizations* as `nD_visualization_labels_(dataset_id)_x_(data_a_b_c_d).csv` following the conventions described above where *n* is 2 or 3, *x_(dataset_id)* identifies the labels to use and *a_b_c_d* identifies the 2D or 3D dataset to use. 
 
 ### Evaluation
 
