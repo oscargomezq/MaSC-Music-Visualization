@@ -49,7 +49,7 @@ Each of the scripts below constitutes an independent module, so that experiments
 
 2. `2d_visualization.py` and `3d_visualization.py`
 
-  - Creates an web visualization for a given 2D or 3D dataset and a set of clustering labels. Given parameters for the small-dimensionality dataset to use and clustering labels to use. Outputs an HTML file in a folder *\visualizations* as `nD_visualization_labels_(dataset_id)_x_(data_a_b_c_d).csv` following the conventions described above where *n* is 2 or 3, *x_(dataset_id)* identifies the labels to use and *a_b_c_d* identifies the 2D or 3D dataset to use. 
+  - Creates an web visualization for a given 2D or 3D dataset and a set of clustering labels. Given parameters for the small-dimensionality dataset to use and clustering labels to use. Outputs an HTML file in a folder *\visualizations* as `nD_visualization_labels_(dataset_id)_x_data_(a_b_c_d).csv` following the conventions described above where *n* is 2 or 3, *x_(dataset_id)* identifies the labels to use and *a_b_c_d* identifies the 2D or 3D dataset to use. 
 
 ### Evaluation
 
