@@ -82,7 +82,7 @@ if __name__ == "__main__":
     # Define possible parameters for feature extraction
     for method in ['mfcc', 'spectrogram']:
         for duration in [5, 10]:
-            save_params(feature_ext_path, method=method, duration=duration)
+            save_params(feature_ext_path, method=method, duration=duration, random_state=0)
     
     # Define a set of preprocessing parameters and a set of feature extraction parameters to use
     preproc_params = 2
@@ -96,6 +96,6 @@ if __name__ == "__main__":
     from utils import init_unique_id_dict
     ids_dict = init_unique_id_dict('CDS-Carlos_song_ids.csv')
 
-    perform_feature_extraction(ids_dict, params_path, params_list, audio_path)
+    # perform_feature_extraction(ids_dict, params_path, params_list, audio_path)
 
 

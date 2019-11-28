@@ -32,14 +32,15 @@ def pca_small (filename):
 def reduce_to_small_dimension (params_path, params_list):
 
     save_to = 'small_dataset'
-    load_from = 'mid_dataset'
     for i in params_list:
         save_to += '_' + str(i)
-    for i in params_list[:-1]:
-        load_from += '_' + str(i)
     save_to += '.csv'
-    load_from += '.csv'
     save_to = os.path.join(params_path[-1], save_to)
+
+    load_from = 'mid_dataset'
+    for i in params_list[:-1]:
+    	load_from += '_' + str(i)
+    load_from += '.csv'
     load_from = os.path.join(params_path[-2], load_from)
 
     curr_params = unpack_params(params_path, params_list)
@@ -70,8 +71,8 @@ if __name__ == "__main__":
     params_path = [preproc_path, feature_ext_path, mid_dim_path, small_dim_path]
 
     # Define possible parameters for small dimensionality reduction
-    param_set_1 = {'small_algorithm': 'tsne', 'components': 2, 'perplexity': 30, 'learning_rate': 200, 'iterations': 5000, 'random_state': 0}
-    param_set_2 = {'small_algorithm': 'tsne', 'components': 3, 'perplexity': 30, 'learning_rate': 200, 'iterations': 5000, 'random_state': 0}
+    param_set_1 = {'small_algorithm': 'tsne', 'components': 2, 'perplexity': 30, 'learning_rate': 200, 'iterations': 5000}
+    param_set_2 = {'small_algorithm': 'tsne', 'components': 3, 'perplexity': 30, 'learning_rate': 200, 'iterations': 5000}
     save_params(small_dim_path, **param_set_1)
     save_params(small_dim_path, **param_set_2)
     
@@ -82,6 +83,6 @@ if __name__ == "__main__":
     small_dim_params = 2
     params_list = [preproc_params, feature_ext_params, mid_dim_params, small_dim_params]
 
-    reduce_to_small_dimension(params_path, params_list)
+    # reduce_to_small_dimension(params_path, params_list)
 
 

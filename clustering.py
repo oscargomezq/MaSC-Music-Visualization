@@ -50,19 +50,20 @@ def cluster_kmeans(save_to_path, dataset_path, **kwargs):
 # params list is the combination of parameters to be used for this step
 def perform_clustering(params_path, params_list):
 
-	save_to = 'cluster_labels'
 	params_len = len(params_list)-1
-	load_from = 'full_dataset' if params_len == 2 else ('mid_dataset' if params_len == 3 else 'small_dataset' )
+
+	save_to = 'cluster_labels'
 	save_to += '_(' + str(params_list[0])
 	for i in params_list[1:-1]:
 		save_to += '_' + str(i)
-	save_to += ')_'
-	save_to += str(params_list[-1])
+	save_to += ')_' + str(params_list[-1])
+	save_to += '.csv'
+	save_to = os.path.join(params_path[-1], save_to)
+
+	load_from = 'full_dataset' if params_len == 2 else ('mid_dataset' if params_len == 3 else 'small_dataset' )
 	for i in params_list[:-1]:
 		load_from += '_' + str(i)
-	save_to += '.csv'
 	load_from += '.csv'
-	save_to = os.path.join(params_path[-1], save_to)
 	load_from = os.path.join(params_path[-2], load_from)
 
 	curr_params = unpack_params(params_path, params_list)
@@ -78,7 +79,7 @@ def perform_clustering(params_path, params_list):
 
 	# Perform clustering using the preferred parameters
 	if curr_params['clustering_algorithm'] == "kmeans":
-		inp = user_confirmation("Enter 'select' to plot kmeans inertia for various k, \n 'c' to continue " )
+		inp = user_confirmation("Enter 'select' to plot kmeans inertia for various k, \n'c' to continue," )
 		if inp == 'select':
 			select_kmeans(load_from, **curr_params)
 		cluster_kmeans(save_to, load_from, **curr_params)
@@ -89,10 +90,10 @@ if __name__ == "__main__":
     # Local folders for preprocessing parameters
     preproc_path = 'preprocessing'
     feature_ext_path = 'full_datasets'
-    mid_dim_path = 'mid_datasets'
-    small_dim_path = 'small_datasets'
+    # mid_dim_path = 'mid_datasets'
+    # small_dim_path = 'small_datasets'
     clustering_path = 'clustering_labels'
-    params_path = [preproc_path, feature_ext_path, mid_dim_path, small_dim_path, clustering_path]
+    params_path = [preproc_path, feature_ext_path, clustering_path]
 
     # Define possible parameters for clustering
     param_set_1 = {'clustering_algorithm': 'kmeans', 'n_clusters': 5}
@@ -101,9 +102,9 @@ if __name__ == "__main__":
     # Define the sets of parameters to use
     preproc_params = 3
     feature_ext_params = 1
-    mid_dim_params = 1
-    small_dim_params = 2
+    # mid_dim_params = 1
+    # small_dim_params = 1
     clustering_params = 1
-    params_list = [preproc_params, feature_ext_params, mid_dim_params, small_dim_params, clustering_params]
+    params_list = [preproc_params, feature_ext_params, clustering_params]
 
     perform_clustering(params_path, params_list)

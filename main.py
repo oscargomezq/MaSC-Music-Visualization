@@ -5,6 +5,8 @@ from create_ids import assign_unique_ids
 from feature_extraction import perform_feature_extraction
 from mid_dimension import reduce_to_mid_dimension
 from small_dimension import reduce_to_small_dimension
+from clustering import perform_clustering
+from visualization import perform_visualization
 
 
 # Formats to consider for making a local copy (music and cover art)
@@ -128,3 +130,64 @@ if __name__ == "__main__":
     params_path = [preproc_path, feature_ext_path, mid_dim_path, small_dim_path]
 
     reduce_to_small_dimension(params_path, params_list)
+
+
+
+    # ----- Small dimensionality ----- #
+    user_confirmation()
+
+    # Local folders for preprocessing parameters
+    preproc_path = 'preprocessing'
+    feature_ext_path = 'full_datasets'
+    mid_dim_path = 'mid_datasets'
+    small_dim_path = 'small_datasets'
+    clustering_path = 'clustering_labels'
+    params_path = [preproc_path, feature_ext_path, mid_dim_path, small_dim_path, clustering_path]
+
+    # Define possible parameters for clustering
+    param_set_1 = {'clustering_algorithm': 'kmeans', 'n_clusters': 5}
+    save_params(clustering_path, **param_set_1)
+    
+    # Define the sets of parameters to use
+    preproc_params = 3
+    feature_ext_params = 1
+    mid_dim_params = 1
+    small_dim_params = 1
+    clustering_params = 1
+    params_list = [preproc_params, feature_ext_params, mid_dim_params, small_dim_params, clustering_params]
+
+    perform_clustering(params_path, params_list)
+
+
+
+    # ----- Small dimensionality ----- #
+    user_confirmation()
+
+    # Local folders for preprocessing parameters
+    preproc_path = 'preprocessing'
+    feature_ext_path = 'full_datasets'
+    mid_dim_path = 'mid_datasets'
+    small_dim_path = 'small_datasets'
+    clustering_path = 'clustering_labels'
+    params_path_data = [preproc_path, feature_ext_path, mid_dim_path, small_dim_path]
+    params_path_clusters = [preproc_path, feature_ext_path, mid_dim_path, small_dim_path, clustering_path]
+    
+    # Define the sets of parameters to use for dataset (has to be from small_datasets)
+    preproc_params = 3
+    feature_ext_params = 1
+    mid_dim_params = 1
+    small_dim_params = 1
+    params_list_data = [preproc_params, feature_ext_params, mid_dim_params, small_dim_params]
+
+    # Define the sets of parameters to use for clustering labels (can be any of full, mid or small datasets on the same branch)
+    preproc_params = 3
+    feature_ext_params = 1
+    mid_dim_params = 1
+    small_dim_params = 1
+    clustering_params = 1
+    params_list_clusters = [preproc_params, feature_ext_params, mid_dim_params, small_dim_params, clustering_params]
+
+    # Define the audio clips to be used
+    audio_path = 'middle_15'
+
+    perform_visualization(params_path_data, params_path_clusters, params_list_data, params_list_clusters, audio_path)

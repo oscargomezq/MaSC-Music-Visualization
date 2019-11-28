@@ -23,14 +23,15 @@ def autoencoder_mid (filename):
 def reduce_to_mid_dimension (params_path, params_list):
 
     save_to = 'mid_dataset'
-    load_from = 'full_dataset'
     for i in params_list:
         save_to += '_' + str(i)
+    save_to += '.csv'
+    save_to = os.path.join(params_path[-1], save_to)
+
+    load_from = 'full_dataset'
     for i in params_list[:-1]:
         load_from += '_' + str(i)
-    save_to += '.csv'
     load_from += '.csv'
-    save_to = os.path.join(params_path[-1], save_to)
     load_from = os.path.join(params_path[-2], load_from)
 
     curr_params = unpack_params(params_path, params_list)
