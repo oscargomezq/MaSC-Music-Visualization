@@ -61,12 +61,16 @@ if __name__ == "__main__":
     params_path = [preproc_path, feature_ext_path, mid_dim_path]
 
     # Define possible parameters for middle dimensionality reduction
-    param_set_1 = {'mid_algorithm': 'identity'}
+    param_set_1 = {'mid_algorithm': 'identity', 'standardize_mid': 'True'}
+    param_set_2 = {'mid_algorithm': 'pca', 'standardize_mid': 'True'}
+    param_set_3 = {'mid_algorithm': 'autoencoder', 'standardize_mid': 'True'}
 
     save_params(mid_dim_path, **param_set_1)
+    save_params(mid_dim_path, **param_set_2)
+    save_params(mid_dim_path, **param_set_3)
     
     # Define the sets of parameters to use
-    preproc_params = 2
+    preproc_params = 3
     feature_ext_params = 1
     mid_dim_params = 1
     params_list = [preproc_params, feature_ext_params, mid_dim_params]

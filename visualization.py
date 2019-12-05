@@ -6,13 +6,13 @@ import plotly
 from bokeh.layouts import row, gridplot, layout
 from bokeh.models import CustomJS, ColumnDataSource, HoverTool, TapTool, WheelZoomTool, LassoSelectTool, BoxSelectTool, PanTool, HelpTool
 from bokeh.plotting import figure, output_file, show
-from utils import save_params, check_repeated_params, unpack_params, user_confirmation
+from utils import save_params, check_repeated_params, unpack_params, user_confirmation, init_unique_id_dict, get_key
 
 # Create 2d visualization on the dataset and clusters given
 # Loads data set from dataset_path and the labels from clustering_path
 # Saves visualization to save_to_path as HTML
 # Takes in the kwargs used for the experiment (sr, hop_length, etc.)
-def bokeh_2d(save_to, load_from_data, load_from_clusters, audio_path, **curr_params_data):
+def bokeh_2d(ids_dict, save_to, load_from_data, load_from_clusters, audio_path, **curr_params_data):
 	
 	df_data = pd.read_csv(load_from_data, names=['UniqueID', 'f1', 'f2'])
 	df_clusters = pd.read_csv(load_from_clusters, names=['UniqueID', 'label'])
@@ -22,47 +22,58 @@ def bokeh_2d(save_to, load_from_data, load_from_clusters, audio_path, **curr_par
 	x = df_plot['f1'].values
 	y = df_plot['f2'].values
 	label = df_plot['label'].values
+	display_name = np.array([get_key(x, ids_dict) for x in uid])
 
 	color_vals = ["olive", "darkred", "goldenrod", "skyblue", "red", "darkblue", "gray", "indigo", "black"]
 	color = np.array([color_vals[l] for l in label])
-	audio = np.array([os.path.join(audio_path, iD + '.wav') for iD in uid])
+	audio = np.array([os.path.join('..', audio_path, iD + '.wav') for iD in uid])
 	images = np.array([])
 
-	# output_file(save_to)
+	output_file(save_to)
 
-	s1 = ColumnDataSource(data = dict(x=x, y=y,
-						  desc=audio, #arts=artists, imgs=images, dsp=display_names,
+	s1 = ColumnDataSource(data = dict(x=x, y=y, uid=uid,
+						  desc=audio, dsp=display_name,#arts=artists, imgs=images, dsp=display_names,
 						  colors=color))
-    
-	hover = HoverTool(tooltips="""
-	    <div>
-	    	// Make an id for the div
-	    	// Insert JS code that evaluates if it is the first element of its type and decide if append the img and audio src or not
+
+	hovertoolcallback = CustomJS(args = dict(source=s1), code = """
+		
+		var uids = source.data['uid'];
+	    const indices = cb_data.index.indices;
+	    if (indices.length > 0){
+		    for (i=1; i<indices.length; i++){
+		    	console.log(uids[indices[i]]);
+		    	var element = document.getElementById(uids[indices[i]]);
+				element.parentNode.removeChild(element);
+		    }
+		}
+		"""
+	)
+	hover = HoverTool(callback = hovertoolcallback, attachment='below', tooltips="""
+	    <div id="@uid">
+	    	
 	        <img
 	            src="@imgs" height="120" alt="@imgs" width="120" style="display: block; margin-left: auto; margin-right: auto;"
 	            border="2"
 	        ></img>
-	    </div>
-	    <div>
-	        <p align="center">@dsp</p>
-	    </div>
-	    <div>
 	        <audio
 	            src="@desc" height="20" width="20" autoplay 
 	            border="2"
 	        ></audio>
 	    </div>
+	    <p align="center">@dsp</p>
+	    
 	    """
 	)
+	tap_box_toolcallback = CustomJS(args = dict(source=s1), code = """
 
-	taptoolcallback = CustomJS(args = dict(source=s1), code = """
-
-		var names = source.data['desc'];
+		var sources = source.data['desc'];
+	    var names = source.data['dsp'];
 	    var inds = source['selected']['1d'].indices;
 
 	    for (i=0; i<inds.length; i++){
 
 	        var title = names[inds[i]];
+	        var source = sources[inds[i]];
 
 	        var para = document.createElement("p");
 	        var node = document.createTextNode(title);
@@ -71,7 +82,7 @@ def bokeh_2d(save_to, load_from_data, load_from_clusters, audio_path, **curr_par
 
 	        var x = document.createElement("AUDIO");
 	        var song = String(title);
-	        x.setAttribute("src",song);
+	        x.setAttribute("src",source);
 	        x.setAttribute("controls", "controls");
 
 	        document.body.appendChild(x);
@@ -82,51 +93,20 @@ def bokeh_2d(save_to, load_from_data, load_from_clusters, audio_path, **curr_par
 	    }   
 		"""
 	)
-	tap = TapTool(callback = taptoolcallback)
-
-	boxtoolcallback = CustomJS(args=dict(source=s1),code = """
-
-	    var names = source.data['desc'];
-	    var inds = source['selected']['1d'].indices;
-
-	    for (i=0; i<inds.length; i++){
-
-	        var title = names[inds[i]];
-
-	        var para = document.createElement("p");
-	        var node = document.createTextNode(title);
-	        para.appendChild(node);
-	        document.body.appendChild(para);
-
-	        var x = document.createElement("AUDIO");
-	        var song = String(title);
-	        x.setAttribute("src",song);
-	        x.setAttribute("controls", "controls");
-
-	        document.body.appendChild(x);
-
-	        var para2 = document.createElement("br");
-	        document.body.appendChild(para2);
-
-	    }
-	    
-		"""
-	)
-	box = BoxSelectTool(callback = boxtoolcallback)
-
+	tap = TapTool(callback = tap_box_toolcallback)
+	box = BoxSelectTool(callback = tap_box_toolcallback)
 	help_b = HelpTool(help_tooltip = """
-	    Button fuctions:\n
+	    Button fuctions:
 
-	    Pan: Move around plot\n
-	    Lasso Select: View plot of artists in selection\n
-	    Box Select: Listen to all songs in selection\n
-	    Wheel Zoom: Resize plot\n
-	    Tap (Click): Listen to all overlaping songs\n
-	    Hover: Listen, view album cover and title\n
-	    Reset\n
+	    Pan: Move around plot
+	    Lasso Select: View plot of artists in selection
+	    Box Select: Listen to all songs in selection
+	    Wheel Zoom: Resize plot
+	    Tap (Click): Listen to all overlaping songs
+	    Hover: Listen, view album cover and title
+	    Reset
 	    """
 	)
-
 	wheel_zoom = WheelZoomTool()
 	lasso_select = LassoSelectTool()
 
@@ -387,7 +367,7 @@ def bokeh_2d(save_to, load_from_data, load_from_clusters, audio_path, **curr_par
 # Loads data set from dataset_path and the labels from clustering_path
 # Saves visualization to save_to_path as HTML
 # Takes in the kwargs used for the experiment (sr, hop_length, etc.)
-def plotly_3d(save_to, load_from_data, load_from_clusters, audio_path, **curr_params_data):
+def plotly_3d(ids_dict, save_to, load_from_data, load_from_clusters, audio_path, **curr_params_data):
 	
 	df_data = pd.read_csv(load_from_data, names=['UniqueID', 'f1', 'f2', 'f3'])
 	df_clusters = pd.read_csv(load_from_clusters, names=['UniqueID', 'label'])
@@ -401,7 +381,7 @@ def plotly_3d(save_to, load_from_data, load_from_clusters, audio_path, **curr_pa
 # params_path is a list with paths to where the parameters for preprocessing, feature extraction, etc. are stored
 # params_list_data is the combination of parameters for the dataset to use
 # params_list_clusters is the combination of parameters for the cluster labels to use
-def perform_visualization(params_path_data, params_path_clusters, params_list_data, params_list_clusters, audio_path):
+def perform_visualization(ids_dict, params_path_data, params_path_clusters, params_list_data, params_list_clusters, audio_path):
 
 	curr_params_data = unpack_params(params_path_data, params_list_data)
 	curr_params_clusters = unpack_params(params_path_clusters, params_list_clusters)
@@ -442,14 +422,13 @@ def perform_visualization(params_path_data, params_path_clusters, params_list_da
 	print("Loading clusters from: " + load_from_clusters)
 
 	if os.path.exists(save_to):
-		print ("Clustering for these parameters already done!")
-		return
+		user_confirmation ("Visualization for these parameters already done, overwrite? enter 'Y' to confirm,")
 
 	# Create visualization using the preferred parameters
 	if dim == 2:
-		bokeh_2d(save_to, load_from_data, load_from_clusters, audio_path, **curr_params_data)
+		bokeh_2d(ids_dict, save_to, load_from_data, load_from_clusters, audio_path, **curr_params_data)
 	elif dim == 3:
-		plotly_3d(save_to, load_from_data, load_from_clusters, audio_path, **curr_params_data)
+		plotly_3d(ids_dict, save_to, load_from_data, load_from_clusters, audio_path, **curr_params_data)
 
 
 if __name__ == "__main__":
@@ -467,7 +446,7 @@ if __name__ == "__main__":
     preproc_params = 3
     feature_ext_params = 1
     mid_dim_params = 1
-    small_dim_params = 1
+    small_dim_params = 3
     params_list_data = [preproc_params, feature_ext_params, mid_dim_params, small_dim_params]
 
     # Define the sets of parameters to use for clustering labels (can be any of full, mid or small datasets on the same branch)
@@ -475,13 +454,16 @@ if __name__ == "__main__":
     feature_ext_params = 1
     # mid_dim_params = 1
     # small_dim_params = 1
-    clustering_params = 1
+    clustering_params = 2
     params_list_clusters = [preproc_params, feature_ext_params, clustering_params]
 
     # Define the audio clips to be used
     audio_path = 'middle_15'
 
-    perform_visualization(params_path_data, params_path_clusters, params_list_data, params_list_clusters, audio_path)
+    # Initialize dictionary for Unique-IDs and names
+    ids_dict = init_unique_id_dict ('CDS-Carlos_song_ids.csv')
+
+    perform_visualization(ids_dict, params_path_data, params_path_clusters, params_list_data, params_list_clusters, audio_path)
 
 
     

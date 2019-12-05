@@ -48,6 +48,7 @@ if __name__ == "__main__":
     # assign_unique_ids(server_path, aud_formats, 'CDS-Carlos_song_ids_test.csv')
 
     user_confirmation()
+    # Initialize dictionary for Unique-IDs and names
     ids_dict = init_unique_id_dict ('CDS-Carlos_song_ids.csv')
 
     

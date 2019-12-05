@@ -13,10 +13,12 @@ def select_kmeans(dataset_path, **kwargs):
     X = pd.read_csv(dataset_path, header=None)
     unique_ids = X.values[:,0].reshape(X.shape[0],1)
     X = X.values[:,1:]
-    # scaler = StandardScaler()
-    # X = scaler.fit_transform(X)
 
-    x_plot = range(1,20)
+    if d['standardize_clustering'] == 'True':
+    	scaler = StandardScaler()
+    	X = scaler.fit_transform(X)
+
+    x_plot = range(1,10)
     y_plot = []
     for k in x_plot:
     	kmeans = KMeans(n_clusters=k, random_state=d['random_state']).fit(X)
@@ -35,8 +37,10 @@ def cluster_kmeans(save_to_path, dataset_path, **kwargs):
 	X = pd.read_csv(dataset_path, header=None)
 	unique_ids = X.values[:,0].reshape(X.shape[0],1)
 	X = X.values[:,1:]
-	# scaler = StandardScaler()
-	# X = scaler.fit_transform(X)
+
+	if d['standardize_clustering'] == 'True':
+		scaler = StandardScaler()
+		X = scaler.fit_transform(X)
 
 	kmeans_model = KMeans(n_clusters=d['n_clusters'], random_state=d['random_state']).fit(X)
 	labels_X = kmeans_model.labels_.reshape(X.shape[0],1)
@@ -96,15 +100,17 @@ if __name__ == "__main__":
     params_path = [preproc_path, feature_ext_path, clustering_path]
 
     # Define possible parameters for clustering
-    param_set_1 = {'clustering_algorithm': 'kmeans', 'n_clusters': 5}
+    param_set_1 = {'clustering_algorithm': 'kmeans', 'n_clusters': 5, 'standardize_clustering': 'False'}
+    param_set_2 = {'clustering_algorithm': 'kmeans', 'n_clusters': 5, 'standardize_clustering': 'True'}
     save_params(clustering_path, **param_set_1)
+    save_params(clustering_path, **param_set_2)
     
     # Define the sets of parameters to use
     preproc_params = 3
     feature_ext_params = 1
     # mid_dim_params = 1
     # small_dim_params = 1
-    clustering_params = 1
+    clustering_params = 2
     params_list = [preproc_params, feature_ext_params, clustering_params]
 
     perform_clustering(params_path, params_list)

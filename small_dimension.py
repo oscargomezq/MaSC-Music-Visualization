@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import os
 from sklearn.manifold import TSNE
+from sklearn.preprocessing import StandardScaler
 from utils import save_params, check_repeated_params, unpack_params
 
 # Does tsne mapping from middle dimensionality to small dimensionality
@@ -13,12 +14,15 @@ def tsne_small (save_to_path, mid_dataset_path, **kwargs):
     mid_X = pd.read_csv(mid_dataset_path, header=None)
     unique_ids = mid_X.values[:,0].reshape(mid_X.shape[0],1)
     mid_X = mid_X.values[:,1:]
-    
+
+    if d['standardize_small'] == 'True':
+    	scaler = StandardScaler()
+    	mid_X = scaler.fit_transform(mid_X)
+
     tsne_model = TSNE(n_components=d['components'], perplexity=d['perplexity'],
                       learning_rate=d['learning_rate'], n_iter=d['iterations'], random_state=d['random_state'])
     small_X = tsne_model.fit_transform(mid_X)
 
-    # small_X = mid_X[:,[0,1]]
     small_X = pd.DataFrame(np.hstack((unique_ids,small_X)))
     small_X.to_csv(save_to_path, index=False, header=False)
 
@@ -71,18 +75,23 @@ if __name__ == "__main__":
     params_path = [preproc_path, feature_ext_path, mid_dim_path, small_dim_path]
 
     # Define possible parameters for small dimensionality reduction
-    param_set_1 = {'small_algorithm': 'tsne', 'components': 2, 'perplexity': 30, 'learning_rate': 200, 'iterations': 5000}
-    param_set_2 = {'small_algorithm': 'tsne', 'components': 3, 'perplexity': 30, 'learning_rate': 200, 'iterations': 5000}
+    param_set_1 = {'small_algorithm': 'tsne', 'standardize_small': 'False', 'components': 2, 'perplexity': 30, 'learning_rate': 200, 'iterations': 5000}
+    param_set_2 = {'small_algorithm': 'tsne', 'standardize_small': 'False', 'components': 3, 'perplexity': 30, 'learning_rate': 200, 'iterations': 5000}
+    param_set_3 = {'small_algorithm': 'tsne', 'standardize_small': 'True', 'components': 2, 'perplexity': 30, 'learning_rate': 200, 'iterations': 5000}
+    param_set_4 = {'small_algorithm': 'tsne', 'standardize_small': 'True', 'components': 3, 'perplexity': 30, 'learning_rate': 200, 'iterations': 5000}
+
     save_params(small_dim_path, **param_set_1)
     save_params(small_dim_path, **param_set_2)
+    save_params(small_dim_path, **param_set_3)
+    save_params(small_dim_path, **param_set_4)
     
     # Define the sets of parameters to use
-    preproc_params = 2
+    preproc_params = 3
     feature_ext_params = 1
     mid_dim_params = 1
-    small_dim_params = 2
+    small_dim_params = 4
     params_list = [preproc_params, feature_ext_params, mid_dim_params, small_dim_params]
 
-    # reduce_to_small_dimension(params_path, params_list)
+    reduce_to_small_dimension(params_path, params_list)
 
 

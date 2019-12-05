@@ -85,7 +85,7 @@ if __name__ == "__main__":
             save_params(feature_ext_path, method=method, duration=duration, random_state=0)
     
     # Define a set of preprocessing parameters and a set of feature extraction parameters to use
-    preproc_params = 2
+    preproc_params = 3
     feature_ext_params = 1
     params_list = [preproc_params, feature_ext_params]
 
