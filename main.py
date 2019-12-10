@@ -15,6 +15,7 @@ img_formats = set(['.tif', '.jpg', '.JPG', '.png'])
 
 # Need to be absolute paths (start with '/')
 # Assumes Mac connected to the CDS-Carlos server (might need to modify server_path for Windows)
+# NOT WORKING ON WINDOWS AT THE MOMENT - Path names are too long and Windows has a character limit!
 server_path = "/Volumes/CDS-Carlos"
 local_path = "/Users/masc/Documents/Oscar/MaSC-Music-Visualization-master/Server_Copy"
 

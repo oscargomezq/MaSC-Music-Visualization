@@ -34,7 +34,6 @@ def extract_mfcc (ids_dict, save_to_path, audio_path, **kwargs):
             print("Processed", progress, "/", len(s_subset))
 
     mfcc_arr = pd.DataFrame(mfcc_arr)
-    print(mfcc_arr)
     mfcc_arr.to_csv(save_to_path, index=False, header=False)
 
 # Extract the spectrogram from the audio files in audio_path to the save_to_path directory
