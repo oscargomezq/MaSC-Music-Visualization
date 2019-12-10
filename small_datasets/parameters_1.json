@@ -1,1 +1,1 @@
-{"components": 2, "iterations": 5000, "learning_rate": 200, "perplexity": 30, "random_state": 0, "small_algorithm": "tsne"}
+{"components": 2, "iterations": 5000, "learning_rate": 200, "perplexity": 30, "small_algorithm": "tsne", "standardize_small": "False"}
