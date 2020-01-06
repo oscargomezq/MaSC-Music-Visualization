@@ -3,31 +3,39 @@ import numpy as np
 import pandas as pd
 
 def artist_input():
-    
+    pass
 
 # Assign each song in the server an artist to use for the analysis
 # Prompts the user to assign an artist selected from one of the subfolders in the path
 def assign_artist (group_arr):
 
     all_subfolders = os.path.normpath(group_arr[0][1]).split(os.path.sep)
-    print()
-    print ("Enter number for the artist:")
-    for i in range(len(all_subfolders)):
-        print (i, "---", all_subfolders[i])
-    print("NA", "---", "Enter artist manually")
-    print()
 
-    artist_idx = input("Number or 'NA': ")
-    if artist_idx == "NA":
+    while True:
+	    print()
+	    print ("Enter number for the artist:")
+	    for i in range(len(all_subfolders)):
+	        print (i, "---", all_subfolders[i])
+	    print("M", "---", "Enter artist manually")
+	    print()
+	    artist_idx = input("Number or 'M': ")
+
+	    poss_inp = ['M']
+	    poss_inp.extend( [str(x) for x in range(len(all_subfolders))] )
+	    if artist_idx in poss_inp:
+	    	break
+	    else:
+	    	print ("Invalid input")
+
+    if artist_idx == "M":
         artist = input("Please enter artist name for this group: ")
     else:
-        try:
-            artist = all_subfolders[int(artist_idx)]
-        except:
-
+    	artist = all_subfolders[int(artist_idx)]
 
     print(artist)
-    print()
+    group_arr = group_arr.tolist()
+    group_arr = [x + [artist] for x in group_arr]
+    group_arr = np.array(group_arr)
     return group_arr
 
 # Go through all the IDs and assign metadata to each leaf subfolder (By album or more granular)
@@ -38,9 +46,15 @@ def perform_metadata_input (ids_csv_path, save_to):
     ids_arr = ids_df.values
     group_cnt = 0
 
-    idx = 0
     leaf_dir = os.path.normpath(ids_arr[0][1]).split(os.path.sep)[-2]
-    for i in range(1,ids_arr.shape[0]):
+
+    if os.path.exists(save_to):
+    	stats_df = pd.read_csv(save_to, header=None, encoding='utf-8')
+    	start = stats_df.values.shape[0]
+    else:
+    	start = 1
+    idx = start-1
+    for i in range(start,ids_arr.shape[0]):
         all_subfolders = os.path.normpath(ids_arr[i][1]).split(os.path.sep)
         curr_leaf = all_subfolders[-2] 
 
@@ -55,28 +69,30 @@ def perform_metadata_input (ids_csv_path, save_to):
 
             # Prompt user to assign artist based on the list of subfolders or a manual entry
             # Call assign artist
-            group_with_artist = assign_artist(group)
+            group_update = assign_artist(group)
 
             # Calls to other methods
-            # Updated dataframe returned
+            # Updated dataframe returned in group_update
 
             # Append to the corpus_statistics file
             with open(save_to, 'a', encoding='utf-8') as stats_file:
-                for row in group_with_artist:
-                    pass
-                    # print(row)
+            	print(group_update)
+            	arr_str = np.array2string(group_update, separator=',')
+            	arr_str = ''.join(arr_str.split())
+            	arr_str = arr_str[2:-2] + '\n'
+            	arr_str = arr_str.replace('[','').replace('],','\n')
+            	stats_file.write(arr_str)
 
-                    # stats_file.write()
-                print(leaf_dir)
-                print("Songs in this group:", group_with_artist.shape[0])
-                print("------------------------------")
+            print(leaf_dir)
+            print("Songs in this group:", group_update.shape[0])
+            print("------------------------------")
 
             idx = i
             leaf_dir = curr_leaf
             group_cnt += 1
 
     print()
-    print("Total leaf groups: " + group_cnt)
+    print("Total leaf groups:", group_cnt)
 
 
 
