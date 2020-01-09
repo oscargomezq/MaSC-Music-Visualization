@@ -77,11 +77,18 @@ def perform_metadata_input (ids_csv_path, save_to):
             # Append to the corpus_statistics file
             with open(save_to, 'a', encoding='utf-8') as stats_file:
             	print(group_update)
-            	arr_str = np.array2string(group_update, separator=',')
-            	arr_str = ''.join(arr_str.split())
-            	arr_str = arr_str[2:-2] + '\n'
-            	arr_str = arr_str.replace('[','').replace('],','\n')
-            	stats_file.write(arr_str)
+            	for entry in group_update:
+            		print(entry)
+            		for col_idx in range(len(entry)-1):
+            			stats_file.write('\"' + str(entry[col_idx]) + '\",')
+            		stats_file.write('\"' + str(entry[len(entry)-1]) + '\"')
+            		stats_file.write('\n')
+            	# arr_str = np.array2string(group_update, separator=',')
+            	# arr_str = ''.join(arr_str.split())
+            	# arr_str = arr_str[2:-2] + '\n'
+            	# arr_str = arr_str.replace('[','').replace('],','\n')
+            	# arr_str = arr_str.replace('\'','\"')
+            	# stats_file.write(arr_str)
 
             print(leaf_dir)
             print("Songs in this group:", group_update.shape[0])
