@@ -2,8 +2,6 @@ import os
 import numpy as np
 import pandas as pd
 
-def artist_input():
-    pass
 
 # Assign each song in the server an artist to use for the analysis
 # Prompts the user to assign an artist selected from one of the subfolders in the path
@@ -83,12 +81,6 @@ def perform_metadata_input (ids_csv_path, save_to):
             			stats_file.write('\"' + str(entry[col_idx]) + '\",')
             		stats_file.write('\"' + str(entry[len(entry)-1]) + '\"')
             		stats_file.write('\n')
-            	# arr_str = np.array2string(group_update, separator=',')
-            	# arr_str = ''.join(arr_str.split())
-            	# arr_str = arr_str[2:-2] + '\n'
-            	# arr_str = arr_str.replace('[','').replace('],','\n')
-            	# arr_str = arr_str.replace('\'','\"')
-            	# stats_file.write(arr_str)
 
             print(leaf_dir)
             print("Songs in this group:", group_update.shape[0])
@@ -102,10 +94,10 @@ def perform_metadata_input (ids_csv_path, save_to):
     print("Total leaf groups:", group_cnt)
 
 
-
 if __name__ == "__main__":
     
     # Path to save the file that contains all metadata
     metadata_path = "corpus_statistics.csv"
 
     perform_metadata_input('CDS-Carlos_song_ids.csv', metadata_path)
+

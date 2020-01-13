@@ -12,16 +12,19 @@ from utils import save_params, check_repeated_params, unpack_params, user_confir
 # Loads data set from dataset_path and the labels from clustering_path
 # Saves visualization to save_to_path as HTML
 # Takes in the kwargs used for the experiment (sr, hop_length, etc.)
-def bokeh_2d(ids_dict, save_to, load_from_data, load_from_clusters, audio_path, **curr_params_data):
+def bokeh_2d(ids_dict, save_to, load_from_data, load_from_clusters, load_from_metadata, audio_path, **curr_params_data):
 	
 	df_data = pd.read_csv(load_from_data, names=['UniqueID', 'f1', 'f2'])
 	df_clusters = pd.read_csv(load_from_clusters, names=['UniqueID', 'label'])
+	df_metadata = pd.read_csv(load_from_metadata, names=['UniqueID', 'file_path', 'artist'])
 	df_plot = df_data.join(df_clusters.set_index('UniqueID'), on='UniqueID')
+	df_plot = df_plot.join(df_metadata.set_index('UniqueID'), on='UniqueID')
 
 	uid = df_plot['UniqueID'].values
 	x = df_plot['f1'].values
 	y = df_plot['f2'].values
 	label = df_plot['label'].values
+	artist = df_plot['artist'].values
 	display_name = np.array([get_key(x, ids_dict) for x in uid])
 
 	color_vals = ["olive", "darkred", "goldenrod", "skyblue", "red", "darkblue", "gray", "indigo", "black"]
@@ -32,7 +35,7 @@ def bokeh_2d(ids_dict, save_to, load_from_data, load_from_clusters, audio_path, 
 	output_file(save_to)
 
 	s1 = ColumnDataSource(data = dict(x=x, y=y, uid=uid,
-						  desc=audio, dsp=display_name,#arts=artists, imgs=images, dsp=display_names,
+						  desc=audio, dsp=display_name, arts=artist, #imgs=images, dsp=display_names,
 						  colors=color))
 
 	hovertoolcallback = CustomJS(args = dict(source=s1), code = """
@@ -41,7 +44,7 @@ def bokeh_2d(ids_dict, save_to, load_from_data, load_from_clusters, audio_path, 
 	    const indices = cb_data.index.indices;
 	    if (indices.length > 0){
 		    for (i=1; i<indices.length; i++){
-		    	console.log(uids[indices[i]]);
+		    	//console.log(uids[indices[i]]);
 		    	var element = document.getElementById(uids[indices[i]]);
 				element.parentNode.removeChild(element);
 		    }
@@ -60,7 +63,7 @@ def bokeh_2d(ids_dict, save_to, load_from_data, load_from_clusters, audio_path, 
 	            border="2"
 	        ></audio>
 	    </div>
-	    <p align="center">@dsp</p>
+	    <p align="center" style="display: block; width: 320px;">@dsp</p>
 	    
 	    """
 	)
@@ -123,242 +126,247 @@ def bokeh_2d(ids_dict, save_to, load_from_data, load_from_clusters, audio_path, 
 
 	s2 = ColumnDataSource(data=dict(artists=[], counts=[], full_artists=[], full_counts=[]))
 
-	# s1.callback = CustomJS(args=dict(s2=s2), code="""
+	s1.callback = CustomJS(args=dict(s2=s2), code="""
 
-	# 	console.log(cb_obj);
+		console.log(cb_obj);
 
-	#     var inds = cb_obj.selected['1d'].indices;
-	#     var d1 = cb_obj.data;
-	#     var d2 = s2.data;
-	#     d2['full_artists'] = [];
-	#     d2['full_counts'] = [];
-	#     var max_freq = 0;
+		if (document.getElementById("source_d3js")==null){
+            var d3js = document.createElement('script');
+            d3js.src = "https://d3js.org/d3.v3.min.js";
+            d3js.id = "source_d3js";
+            document.head.appendChild(d3js);
+        }
 
-	#     for (i=0; i<inds.length; i++){
+	    var inds = cb_obj.selected['1d'].indices;
+	    var d1 = cb_obj.data;
+	    var d2 = s2.data;
+	    d2['full_artists'] = [];
+	    d2['full_counts'] = [];
+	    var max_freq = 0;
 
-	#         var current = d1['arts'][inds[i]];
+	    for (i=0; i<inds.length; i++){
 
-	#         if (d2['full_artists'].indexOf(current) == -1){
-	#             d2['full_artists'].push(d1['arts'][inds[i]]);
-	#             d2['full_counts'].push(1);
-	#         }
-	#         else{
-	#             d2['full_counts'][d2['full_artists'].indexOf(current)] += 1;
-	#             if (d2['full_counts'][d2['full_artists'].indexOf(current)] > max_freq){
-	#             	max_freq = d2['full_counts'][d2['full_artists'].indexOf(current)];
-	#             }
-	#         }
+	        var current = d1['arts'][inds[i]];
+
+	        if (d2['full_artists'].indexOf(current) == -1){
+	            d2['full_artists'].push(d1['arts'][inds[i]]);
+	            d2['full_counts'].push(1);
+	        }
+	        else{
+	            d2['full_counts'][d2['full_artists'].indexOf(current)] += 1;
+	            if (d2['full_counts'][d2['full_artists'].indexOf(current)] > max_freq){
+	            	max_freq = d2['full_counts'][d2['full_artists'].indexOf(current)];
+	            }
+	        }
 	        
-	#     }
+	    }
 
-	#     console.log(max_freq);
+	    console.log(max_freq);
 
-	#     d2['artists'] = [];
-	#     d2['counts'] = [];
-	#     var thres = max_freq * 0.05;
+	    d2['artists'] = [];
+	    d2['counts'] = [];
+	    var thres = max_freq * 0.05;
 
-	#     //filter arrays to only include freqs >= 5pcnt of max_freq
+	    //filter arrays to only include freqs >= 5pcnt of max_freq
 
-	#     for (i=0; i<d2['full_artists'].length; i++){
+	    for (i=0; i<d2['full_artists'].length; i++){
 
-	#     	if (d2['full_counts'][i] >= thres){
-	#     		d2['artists'].push(d2['full_artists'][i]);
-	#     		d2['counts'].push(d2['full_counts'][i]);
-	#     	}
+	    	if (d2['full_counts'][i] >= thres){
+	    		d2['artists'].push(d2['full_artists'][i]);
+	    		d2['counts'].push(d2['full_counts'][i]);
+	    	}
 
-	#     }
-
-
-	#     s2.change.emit();
-
-	#     if (inds.length > 5){
+	    }
 
 
-	#         if (document.getElementById("right_side_style")==null){
-	#             var css = ".right_side div {\\n\\tfont: 12px sans-serif;\\n";
-	#             css = css.concat("\\tbackground-color: white;\\n\\tpadding: 3px;\\n\\tcolor: white;}");
-	#             var style = document.createElement('style');
-	#             style.type = 'text/css';
-	#             style.id = "right_side_style";
-	#             style.appendChild(document.createTextNode(css));
-	#             document.head.appendChild(style);
-	#         }
+	    s2.change.emit();
 
-	#         if (document.getElementById("chart_style")==null){
-	#             var css = ".chart div {\\n\\tfont: 12px sans-serif;\\n";
-	#             css = css.concat("\\tbackground-color: steelblue;\\n\\topacity: 0.8;\\n\\theight: 14px;\\n\\tmargin: 1px;\\n\\twidth: 470px;\\n\\ttext-align: right;\\n\\tcolor: white;}");
-	#             var style = document.createElement('style');
-	#             style.type = 'text/css';
-	#             style.id = "chart_style";
-	#             style.appendChild(document.createTextNode(css));
-	#             document.head.appendChild(style);
-	#         }
-
-	#         if (document.getElementById("artist_style")==null){
-	#             var css = ".artists div {\\n\\tfont: 12px sans-serif;\\n";
-	#             css = css.concat("\\tbackground-color: white;\\n\\theight: 14px;\\n\\tmargin: 1px;\\n\\twidth: 470px;\\n\\ttext-align: right;\\n\\tcolor: black;}");
-	#             var style = document.createElement('style');
-	#             style.type = 'text/css';
-	#             style.id = "artist_style";
-	#             style.appendChild(document.createTextNode(css));
-	#             document.head.appendChild(style);
-	#         }
-
-	#         if (document.getElementById("right_side_div")==null){
-	#             var rightdiv = document.createElement('div');
-	#             rightdiv.className = "right_side";
-	#             rightdiv.style = "float: left; tdisplay: inline-flex; width: 970px;";
-	#             rightdiv.id = "right_side_div";
-	#             document.getElementsByClassName("bk-spacer-box bk-layout-fixed")[0].innerHTML = "";
-	#             document.getElementsByClassName("bk-spacer-box bk-layout-fixed")[0].style = "width: 970px";
-	#             document.getElementsByClassName("bk-spacer-box bk-layout-fixed")[0].appendChild(rightdiv);
-	#         }
-	#         else{
-	#         	document.getElementsByClassName("bk-spacer-box bk-layout-fixed")[0].style = "width: 970px";
-	#             document.getElementById("right_side_div").innerHTML = "";
-	#         }
-
-	#         if (document.getElementById("title_p")==null){
-	#             var para = document.createElement("p");
-	#             var node = document.createTextNode("Artist Frequencies");
-	#             para.className = "title";
-	#             para.style = "text-align: center; font-weight: bold; font-size: 15px;";
-	#             para.id = "title_p";
-	#             para.appendChild(node);
-	#             document.getElementsByClassName("right_side")[0].appendChild(para);
-	#         }
-	#         else{
-	#             document.getElementById("artists_div").innerHTML = "";
-	#         }
-
-	#         if (document.getElementById("artists_div")==null){
-	#             var artdiv = document.createElement('div');
-	#             artdiv.className = "artists";
-	#             artdiv.style = "float: left; tdisplay: inline-flex;";
-	#             artdiv.id = "artists_div";
-	#             document.getElementsByClassName("right_side")[0].appendChild(artdiv);
-	#         }
-	#         else{
-	#             document.getElementById("artists_div").innerHTML = "";
-	#         }
-
-	#         if (document.getElementById("chart_div")==null){
-	#             var chartdiv = document.createElement('div');
-	#             chartdiv.className = "chart";
-	#             chartdiv.style = "float: right; tdisplay: inline-flex;";
-	#             chartdiv.id = "chart_div";
-	#             document.getElementsByClassName("right_side")[0].appendChild(chartdiv);
-	#         }
-	#         else{
-	#             document.getElementById("chart_div").innerHTML = "";
-	#         }
+	    if (inds.length > 5){
 
 
-	#         if (document.getElementById("source_d3js")==null){
-	#             var d3js = document.createElement('script');
-	#             d3js.src = "https://d3js.org/d3.v3.min.js";
-	#             d3js.id = "source_d3js";
-	#             document.body.appendChild(d3js);
-	#         }
+	        if (document.getElementById("right_side_style")==null){
+	            var css = ".right_side div {\\n\\tfont: 12px sans-serif;\\n";
+	            css = css.concat("\\tbackground-color: white;\\n\\tpadding: 3px;\\n\\tcolor: white;}");
+	            var style = document.createElement('style');
+	            style.type = 'text/css';
+	            style.id = "right_side_style";
+	            style.appendChild(document.createTextNode(css));
+	            document.head.appendChild(style);
+	        }
+
+	        if (document.getElementById("chart_style")==null){
+	            var css = ".chart div {\\n\\tfont: 12px sans-serif;\\n";
+	            css = css.concat("\\tbackground-color: steelblue;\\n\\topacity: 0.8;\\n\\theight: 14px;\\n\\tmargin: 1px;\\n\\twidth: 470px;\\n\\ttext-align: right;\\n\\tcolor: white;}");
+	            var style = document.createElement('style');
+	            style.type = 'text/css';
+	            style.id = "chart_style";
+	            style.appendChild(document.createTextNode(css));
+	            document.head.appendChild(style);
+	        }
+
+	        if (document.getElementById("artist_style")==null){
+	            var css = ".artists div {\\n\\tfont: 12px sans-serif;\\n";
+	            css = css.concat("\\tbackground-color: white;\\n\\theight: 14px;\\n\\tmargin: 1px;\\n\\twidth: 470px;\\n\\ttext-align: right;\\n\\tcolor: black;}");
+	            var style = document.createElement('style');
+	            style.type = 'text/css';
+	            style.id = "artist_style";
+	            style.appendChild(document.createTextNode(css));
+	            document.head.appendChild(style);
+	        }
+
+	        if (document.getElementById("right_side_div")==null){
+	            var rightdiv = document.createElement('div');
+	            rightdiv.className = "right_side";
+	            rightdiv.style = "float: left; tdisplay: inline-flex; width: 970px;";
+	            rightdiv.id = "right_side_div";
+	            //document.getElementsByClassName("bk-root")[0].innerHTML = "";
+	            //document.getElementsByClassName("bk-root")[0].style = "width: 970px";
+	            document.getElementsByClassName("bk-root")[0].appendChild(rightdiv);
+	        }
+	        else{
+	        	//document.getElementsByClassName("bk-spacer-box bk-layout-fixed")[0].style = "width: 970px";
+	            document.getElementById("right_side_div").innerHTML = "";
+	        }
+
+	        if (document.getElementById("title_p")==null){
+	            var para = document.createElement("p");
+	            var node = document.createTextNode("Artist Frequencies");
+	            para.className = "title";
+	            para.style = "text-align: center; font-weight: bold; font-size: 15px;";
+	            para.id = "title_p";
+	            para.appendChild(node);
+	            document.getElementsByClassName("right_side")[0].appendChild(para);
+	        }
+	        else{
+	            document.getElementById("artists_div").innerHTML = "";
+	        }
+
+	        if (document.getElementById("artists_div")==null){
+	            var artdiv = document.createElement('div');
+	            artdiv.className = "artists";
+	            artdiv.style = "float: left; tdisplay: inline-flex;";
+	            artdiv.id = "artists_div";
+	            document.getElementsByClassName("right_side")[0].appendChild(artdiv);
+	        }
+	        else{
+	            document.getElementById("artists_div").innerHTML = "";
+	        }
+
+	        if (document.getElementById("chart_div")==null){
+	            var chartdiv = document.createElement('div');
+	            chartdiv.className = "chart";
+	            chartdiv.style = "float: right; tdisplay: inline-flex;";
+	            chartdiv.id = "chart_div";
+	            document.getElementsByClassName("right_side")[0].appendChild(chartdiv);
+	        }
+	        else{
+	            document.getElementById("chart_div").innerHTML = "";
+	        }
 
 
-	#         if (document.getElementById("mycode")==null){
-	#             var code_div = document.createElement('script');
-	#             code_div.id = "mycode";
-	#             document.body.appendChild(code_div);
-	#         }
+	        if (document.getElementById("source_d3js")==null){
+	            var d3js = document.createElement('script');
+	            d3js.src = "https://d3js.org/d3.v3.min.js";
+	            d3js.id = "source_d3js";
+	            document.head.appendChild(d3js);
+	        }
 
-	#         //populate var data with d2["counts"] and var art_names with d2["artists"]
 
-	#         var string = "[";
+	        if (document.getElementById("mycode")==null){
+	            var code_div = document.createElement('script');
+	            code_div.id = "mycode";
+	            document.body.appendChild(code_div);
+	        }
 
-	#         for (j=0; j<d2['counts'].length-1; j++){
-	#         	var tmp = d2['counts'][j];
-	#             string = string.concat(tmp);
-	#             string += ", ";
-	#         }
+	        //populate var data with d2["counts"] and var art_names with d2["artists"]
+
+	        var string = "[";
+
+	        for (j=0; j<d2['counts'].length-1; j++){
+	        	var tmp = d2['counts'][j];
+	            string = string.concat(tmp);
+	            string += ", ";
+	        }
 	        
-	#         var tmp = d2['counts'][d2['counts'].length-1];
-	#         string = string.concat(tmp);
-	#         string += "]";
+	        var tmp = d2['counts'][d2['counts'].length-1];
+	        string = string.concat(tmp);
+	        string += "]";
 
 
-	#         var string1 = "[\\"";
+	        var string1 = "[\\"";
 
-	#         for (j=0; j<d2['artists'].length-1; j++){
-	#             var tmp = d2['artists'][j];
-	#             string1 = string1.concat(tmp);
-	#             string1 = string1.concat("\\"")
-	#             string1 += ", \\"";
-	#         }
+	        for (j=0; j<d2['artists'].length-1; j++){
+	            var tmp = d2['artists'][j];
+	            string1 = string1.concat(tmp);
+	            string1 = string1.concat("\\"")
+	            string1 += ", \\"";
+	        }
 	        
-	#         var tmp = d2['artists'][d2['artists'].length-1];
-	#         string1 = string1.concat(tmp);
-	#         string1 += "\\"]";
+	        var tmp = d2['artists'][d2['artists'].length-1];
+	        string1 = string1.concat(tmp);
+	        string1 += "\\"]";
 
 
-	#         var d3js_code = "var data = ";
-	#         d3js_code = d3js_code.concat(string);
-	#         d3js_code = d3js_code + ";\\n\\n";
+	        var d3js_code = "var data = ";
+	        d3js_code = d3js_code.concat(string);
+	        d3js_code = d3js_code + ";\\n\\n";
 
-	#         d3js_code = d3js_code+ "var art_names = ";
-	#         d3js_code = d3js_code.concat(string1);
-	#         d3js_code = d3js_code + ";\\n\\n";
+	        d3js_code = d3js_code+ "var art_names = ";
+	        d3js_code = d3js_code.concat(string1);
+	        d3js_code = d3js_code + ";\\n\\n";
 
 
-	#         d3js_code = d3js_code.concat("var x = d3.scale.linear()\\n    .domain([0, d3.max(data)])\\n    .range([0, 470]);\\n\\n");
-	#         //    var x = d3.scale.linear()
-	#         //        .domain([0, d3.max(data)])
-	#         //        .range([0, 420]);
-
-	        
-	#         d3js_code = d3js_code.concat("d3.select(\\".chart\\")\\n  .selectAll(\\"div\\")\\n    "+
-	#         ".data(data)\\n  .enter().append(\\"div\\")\\n    "+
-	#         ".style(\\"width\\", function(d) { return x(d) + \\"px\\"; })\\n    .text(function(d) { return d; });");
-
-	#         //    d3.select(".chart")
-	#         //      .selectAll("div")
-	#         //        .data(data)
-	#         //      .enter().append("div")
-	#         //        .style("width", function(d) { return x(d) + "px"; })
-	#         //        .style("margin", "auto 5px")
-	#         //        .text(function(d) { return d; });";
-	#         //        .class("chartel");
-
+	        d3js_code = d3js_code.concat("var x = d3.scale.linear()\\n    .domain([0, d3.max(data)])\\n    .range([0, 470]);\\n\\n");
+	        //    var x = d3.scale.linear()
+	        //        .domain([0, d3.max(data)])
+	        //        .range([0, 420]);
 
 	        
-	#         d3js_code = d3js_code.concat("\\n\\nd3.select(\\".artists\\")\\n  .selectAll(\\"div\\")\\n    "+
-	#         ".data(art_names)\\n  .enter().append(\\"div\\")\\n    "+
-	#         ".style(\\"width\\", \\"300\\")\\n    .text(function(d) { return d; });");
+	        d3js_code = d3js_code.concat("d3.select(\\".chart\\")\\n  .selectAll(\\"div\\")\\n    "+
+	        ".data(data)\\n  .enter().append(\\"div\\")\\n    "+
+	        ".style(\\"width\\", function(d) { return x(d) + \\"px\\"; })\\n    .text(function(d) { return d; });");
 
-	#         //    d3.select(".artists")
-	#         //      .selectAll("div")
-	#         //        .data(art_names)
-	#         //      .enter().append("div")
-	#         //        .style("width", "300")
-	#         //        .style("margin", "auto 5px")
-	#         //        .text(function(d) { return d; });";
-	#         //        .class("artel");
-
-	#         document.getElementById("mycode").innerHTML = "";
-	#         document.getElementById("mycode").appendChild(document.createTextNode(d3js_code));
+	        //    d3.select(".chart")
+	        //      .selectAll("div")
+	        //        .data(data)
+	        //      .enter().append("div")
+	        //        .style("width", function(d) { return x(d) + "px"; })
+	        //        .style("margin", "auto 5px")
+	        //        .text(function(d) { return d; });";
+	        //        .class("chartel");
 
 
-	          
-	#         var script = document.getElementById("mycode");
 	        
-	#         eval(script.innerHTML);
+	        d3js_code = d3js_code.concat("\\n\\nd3.select(\\".artists\\")\\n  .selectAll(\\"div\\")\\n    "+
+	        ".data(art_names)\\n  .enter().append(\\"div\\")\\n    "+
+	        ".style(\\"width\\", \\"300\\")\\n    .text(function(d) { return d; });");
+
+	        //    d3.select(".artists")
+	        //      .selectAll("div")
+	        //        .data(art_names)
+	        //      .enter().append("div")
+	        //        .style("width", "300")
+	        //        .style("margin", "auto 5px")
+	        //        .text(function(d) { return d; });";
+	        //        .class("artel");
+
+	        document.getElementById("mycode").innerHTML = "";
+	        document.getElementById("mycode").appendChild(document.createTextNode(d3js_code));
 
 
-	#         // Check if chart and script exist
-	#         // if not, create them
-	#         // if they are, change innerhtml for script
-	#         // delete nodes from char and repopulate with new data    
+	        var script = document.getElementById("mycode");	        
+	        eval(script.innerHTML);
 
-	#     }
 
-	#     """
-	# )
+	        // Check if chart and script exist
+	        // if not, create them
+	        // if they are, change innerhtml for script
+	        // delete nodes from char and repopulate with new data    
+
+	    }
+
+	    """
+	)
 
 	grid = gridplot([[p1, None]], merge_tools=False)
 	show(grid)
@@ -367,7 +375,7 @@ def bokeh_2d(ids_dict, save_to, load_from_data, load_from_clusters, audio_path, 
 # Loads data set from dataset_path and the labels from clustering_path
 # Saves visualization to save_to_path as HTML
 # Takes in the kwargs used for the experiment (sr, hop_length, etc.)
-def plotly_3d(ids_dict, save_to, load_from_data, load_from_clusters, audio_path, **curr_params_data):
+def plotly_3d(ids_dict, save_to, load_from_data, load_from_clusters, load_from_metadata, audio_path, **curr_params_data):
 	
 	df_data = pd.read_csv(load_from_data, names=['UniqueID', 'f1', 'f2', 'f3'])
 	df_clusters = pd.read_csv(load_from_clusters, names=['UniqueID', 'label'])
@@ -381,7 +389,7 @@ def plotly_3d(ids_dict, save_to, load_from_data, load_from_clusters, audio_path,
 # params_path is a list with paths to where the parameters for preprocessing, feature extraction, etc. are stored
 # params_list_data is the combination of parameters for the dataset to use
 # params_list_clusters is the combination of parameters for the cluster labels to use
-def perform_visualization(ids_dict, params_path_data, params_path_clusters, params_list_data, params_list_clusters, audio_path):
+def perform_visualization(ids_dict, metadata_file, params_path_data, params_path_clusters, params_list_data, params_list_clusters, audio_path):
 
 	curr_params_data = unpack_params(params_path_data, params_list_data)
 	curr_params_clusters = unpack_params(params_path_clusters, params_list_clusters)
@@ -426,9 +434,9 @@ def perform_visualization(ids_dict, params_path_data, params_path_clusters, para
 
 	# Create visualization using the preferred parameters
 	if dim == 2:
-		bokeh_2d(ids_dict, save_to, load_from_data, load_from_clusters, audio_path, **curr_params_data)
+		bokeh_2d(ids_dict, save_to, load_from_data, load_from_clusters, metadata_file, audio_path, **curr_params_data)
 	elif dim == 3:
-		plotly_3d(ids_dict, save_to, load_from_data, load_from_clusters, audio_path, **curr_params_data)
+		plotly_3d(ids_dict, save_to, load_from_data, load_from_clusters, metadata_file, audio_path, **curr_params_data)
 
 
 if __name__ == "__main__":
@@ -463,7 +471,9 @@ if __name__ == "__main__":
     # Initialize dictionary for Unique-IDs and names
     ids_dict = init_unique_id_dict ('CDS-Carlos_song_ids.csv')
 
-    perform_visualization(ids_dict, params_path_data, params_path_clusters, params_list_data, params_list_clusters, audio_path)
+    metadata_file = 'corpus_statistics.csv'
+
+    perform_visualization(ids_dict, metadata_file, params_path_data, params_path_clusters, params_list_data, params_list_clusters, audio_path)
 
 
     
