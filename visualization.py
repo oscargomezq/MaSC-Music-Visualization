@@ -133,6 +133,7 @@ def bokeh_2d(ids_dict, save_to, load_from_data, load_from_clusters, load_from_me
 		if (document.getElementById("source_d3js")==null){
             var d3js = document.createElement('script');
             d3js.src = "https://d3js.org/d3.v3.min.js";
+            d3js.charset = "utf-8";
             d3js.id = "source_d3js";
             document.head.appendChild(d3js);
         }
@@ -217,7 +218,7 @@ def bokeh_2d(ids_dict, save_to, load_from_data, load_from_clusters, load_from_me
 	        if (document.getElementById("right_side_div")==null){
 	            var rightdiv = document.createElement('div');
 	            rightdiv.className = "right_side";
-	            rightdiv.style = "float: left; tdisplay: inline-flex; width: 970px;";
+	            rightdiv.style = "float: left; position: absolute; top: 10px; left: 720px; width: 970px;";
 	            rightdiv.id = "right_side_div";
 	            //document.getElementsByClassName("bk-root")[0].innerHTML = "";
 	            //document.getElementsByClassName("bk-root")[0].style = "width: 970px";
@@ -471,7 +472,7 @@ if __name__ == "__main__":
     # Initialize dictionary for Unique-IDs and names
     ids_dict = init_unique_id_dict ('CDS-Carlos_song_ids.csv')
 
-    metadata_file = 'corpus_statistics.csv'
+    metadata_file = 'corpus_statistics_copy.csv'
 
     perform_visualization(ids_dict, metadata_file, params_path_data, params_path_clusters, params_list_data, params_list_clusters, audio_path)
 
