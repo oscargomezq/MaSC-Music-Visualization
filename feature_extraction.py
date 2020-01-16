@@ -39,7 +39,31 @@ def extract_mfcc (ids_dict, save_to_path, audio_path, **kwargs):
 # Extract the spectrogram from the audio files in audio_path to the save_to_path directory
 # Takes in the kwargs used for the experiment (sr, hop_length, etc.)
 def extract_spectrogram (save_to_path, audio_path, **kwargs):
-    pass
+
+    d = kwargs
+    spect_arr = []
+
+    s_subset = song_subset(audio_path, server_subpaths=d['server_subpaths'], ids_dict=ids_dict)
+    progress = 0
+    for unique_id, filedir in s_subset:
+
+        full_duration = librosa.get_duration(filename=filedir)
+
+        # Compute MFCC features for the first sets
+        y, sr = librosa.load(filedir, offset = (full_duration/2) - d['duration']/2, duration = d['duration'], sr = d['sr'])
+        S = np.abs(librosa.stft(y, hop_length=d['hop_length']))
+        log_S = librosa.power_to_db(S**2)
+
+        row = [unique_id]
+        row.extend(np.ravel(log_S))
+        spect_arr.append(row)
+        progress += 1
+        if progress%100 == 0:
+        	print("Processed", progress, "/", len(s_subset))
+        	spect_arr = pd.DataFrame(spect_arr)
+        	spect_arr.to_csv(save_to_path, index=False, header=False, mode='a')
+        	spect_arr = []
+
 
 # Perform feature extraction on the audio files in audio_path
 # ids_dict is the dictionary to retrieve original filenames from the Unique-ID
@@ -85,7 +109,7 @@ if __name__ == "__main__":
     
     # Define a set of preprocessing parameters and a set of feature extraction parameters to use
     preproc_params = 3
-    feature_ext_params = 1
+    feature_ext_params = 3
     params_list = [preproc_params, feature_ext_params]
 
     # Define the audio clips to be used
@@ -95,6 +119,6 @@ if __name__ == "__main__":
     from utils import init_unique_id_dict
     ids_dict = init_unique_id_dict('CDS-Carlos_song_ids.csv')
 
-    # perform_feature_extraction(ids_dict, params_path, params_list, audio_path)
+    perform_feature_extraction(ids_dict, params_path, params_list, audio_path)
 
 

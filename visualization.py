@@ -472,7 +472,7 @@ if __name__ == "__main__":
     # Initialize dictionary for Unique-IDs and names
     ids_dict = init_unique_id_dict ('CDS-Carlos_song_ids.csv')
 
-    metadata_file = 'corpus_statistics_copy.csv'
+    metadata_file = 'corpus_statistics.csv'
 
     perform_visualization(ids_dict, metadata_file, params_path_data, params_path_clusters, params_list_data, params_list_clusters, audio_path)
 

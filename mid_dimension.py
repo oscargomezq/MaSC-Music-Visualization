@@ -2,6 +2,14 @@ import numpy as np
 import pandas as pd
 import os
 import shutil
+import numpy as np
+from scipy.stats import norm
+from keras.layers import Input, Dense, Lambda, Layer
+from keras.models import Model
+from keras import backend as K
+from keras import metrics
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import MinMaxScaler
 from utils import save_params, check_repeated_params, unpack_params
 
 # Does identity mapping from full dimensionality to middle dimensionality
@@ -13,8 +21,24 @@ def identity_mid (save_to_path, full_dataset_path, **kwargs):
 def pca_mid (filename):
     pass
 
-def autoencoder_mid (filename):
-    pass
+# Does autoencoder mapping from full dimensionality to middle dimensionality
+# Loads data set from full_dataset_path and saves reduced dataset in save_to_path
+# Takes in the kwargs used for the experiment (sr, hop_length, etc.)
+def autoencoder_mid (save_to_path, full_dataset_path, **kwargs):
+
+	d = kwargs
+    full_X = pd.read_csv(mid_dataset_path, header=None)
+    unique_ids = full_X.values[:,0].reshape(mid_X.shape[0],1)
+    full_X = full_X.values[:,1:]
+
+    if d['standardize_small'] == 'True':
+    	scaler = MinMaxScaler()
+    	mid_X = scaler.fit_transform(mid_X)
+
+
+
+    mid_X = pd.DataFrame(np.hstack((unique_ids,small_X)))
+    mid_X.to_csv(save_to_path, index=False, header=False)
 
 
 # Perform dimensionality reduction from full dimensionality to middle dimensionality
@@ -50,6 +74,8 @@ def reduce_to_mid_dimension (params_path, params_list):
         identity_mid(save_to, load_from, **curr_params)
     elif curr_params['mid_algorithm'] == "pca":
         pca_mid(save_to, load_from, **curr_params)
+    elif curr_params['mid_algorithm'] == "autoencoder":
+        autoencoder_mid(save_to, load_from, **curr_params)
     
 
 if __name__ == "__main__":
