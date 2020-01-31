@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import pandas as pd
+from sklearn import metrics
 
 
 # Calculate cluster purity
@@ -23,8 +24,8 @@ def cluster_entropy (ground_labels, assigned_labels):
 
 # Calculate cluster rand score
 def cluster_rand_score (ground_labels, assigned_labels):
-
-    return group_arr
+    score = metrics.adjusted_rand_score(ground_labels, assigned_labels)
+    return score
 
 
 
@@ -61,6 +62,13 @@ if __name__ == "__main__":
     stft_6_means_b = [(1 if x==1 else 0) for x in stft_df.iloc[:,3].values]
 
 
+    # Run clusterig measures on MFCC
 
-    # perform_metadata_input('CDS-Carlos_song_ids.csv', metadata_path)
+    # Rand score
+    mfcc_2_score = cluster_rand_score(mfcc_ground_labels, mfcc_2_means)
+    mfcc_6_score = cluster_rand_score(mfcc_ground_labels, mfcc_6_means)
+    
+    print(mfcc_2_score, mfcc_6_score)
+
+
 
