@@ -135,11 +135,17 @@ for k in [6]:
         labels = tlabels
 print('kmeans done', fk, "clusters")
 
-
-
 # plt.plot(xp, yp)
 # plt.show()
 ######################
+
+# Kmeans for 2 -  baseline
+labels_2 = []
+kmeans2 = KMeans(n_clusters=2, random_state=0).fit(X)
+labels_2 = kmeans2.labels_
+inertia2 = kmeans2.inertia_
+
+print('kmeans done', str(2), "clusters, intertia: ", inertia2)
 
 # def cluster_high:
     # filename = 'MFCC_Merged_Repaired_All_v2.csv'
@@ -265,6 +271,7 @@ for p in range(1,2):
 
     df.insert(3,3,labels)
     df.insert(4,4,collection_labels)
+    df.insert(5,5,labels_2)
 
     print(df.head())
 
@@ -301,7 +308,7 @@ for p in range(1,2):
     colors = []
     for k in range(len(proper_names)):
         images.append('Cover.jpg')
-        colors.append(color_opt[labls[k]])
+        colors.append(color_opt[labels_2[k]])
 
 
 

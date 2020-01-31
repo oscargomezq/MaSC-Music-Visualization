@@ -134,6 +134,14 @@ print('kmeans done', fk, "clusters")
 # plt.show()
 ######################
 
+# Kmeans for 2 -  baseline
+labels_2 = []
+kmeans2 = KMeans(n_clusters=2, random_state=0).fit(X)
+labels_2 = kmeans2.labels_
+inertia2 = kmeans2.inertia_
+    
+print('kmeans done', str(2), "clusters, intertia: ", inertia2)
+
 
 ################# Fast initial reading #########################
 # filename = '2d_Merged_Repaired_no_dups_mfcc_tsne_prx_10_l-rate_2000_try_6_v2.csv'
@@ -195,6 +203,7 @@ for p in range(1,2):
 
     df.insert(3,3,labels)
     df.insert(4,4,collection_labels)
+    df.insert(5,5,labels_2)
 
     print(df.head())
 
@@ -230,7 +239,7 @@ for p in range(1,2):
     colors = []
     for k in range(len(proper_names)):
         images.append('Cover.jpg')
-        colors.append(color_opt[labels[k]])
+        colors.append(color_opt[labels_2[k]])
 
 
 
