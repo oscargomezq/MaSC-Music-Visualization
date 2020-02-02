@@ -6,26 +6,11 @@ from sklearn import metrics
 
 # Calculate cluster purity
 def cluster_purity (ground_labels, assigned_labels):
-
-    return group_arr
-
-
-# Calculate cluster accuracy
-def cluster_accuracy (ground_labels, assigned_labels):
-
-    return group_arr
-
-
-# Calculate cluster entropy
-def cluster_entropy (ground_labels, assigned_labels):
-
-    return group_arr
-
-
-# Calculate cluster rand score
-def cluster_rand_score (ground_labels, assigned_labels):
-    score = metrics.adjusted_rand_score(ground_labels, assigned_labels)
-    return score
+	# https://stackoverflow.com/a/51672699
+    # compute contingency matrix (also called confusion matrix)
+    contingency_matrix = metrics.cluster.contingency_matrix(ground_labels, assigned_labels)
+    print(contingency_matrix)
+    return np.sum(np.amax(contingency_matrix, axis=0)) / np.sum(contingency_matrix) 
 
 
 
@@ -46,8 +31,8 @@ if __name__ == "__main__":
     mfcc_df.iloc[:,5] = [(1 if x==0 else 0) for x in mfcc_df.iloc[:,5].values]
 
     # Ground truth labels
-    mfcc_ground_labels = mfcc_df.values[:,4]    # 2972
-    stft_ground_labels = stft_df.values[:,4]    # 2971
+    mfcc_ground_labels = mfcc_df.values[:,4]    # 2792
+    stft_ground_labels = stft_df.values[:,4]    # 2791
 
     # 2-means labels
     mfcc_2_means = mfcc_df.values[:,5]
@@ -64,11 +49,40 @@ if __name__ == "__main__":
 
     # Run clusterig measures on MFCC
 
+    # Cluster purity
+    mfcc_2_purity = cluster_purity(mfcc_ground_labels, mfcc_2_means)
+    mfcc_6_purity = cluster_purity(mfcc_ground_labels, mfcc_6_means)
+    print("Purity scores:", mfcc_2_purity, mfcc_6_purity)
     # Rand score
-    mfcc_2_score = cluster_rand_score(mfcc_ground_labels, mfcc_2_means)
-    mfcc_6_score = cluster_rand_score(mfcc_ground_labels, mfcc_6_means)
+    mfcc_2_rand = metrics.adjusted_rand_score(mfcc_ground_labels, mfcc_2_means)
+    mfcc_6_rand = metrics.adjusted_rand_score(mfcc_ground_labels, mfcc_6_means)
+    print("Rand scores:", mfcc_2_rand, mfcc_6_rand)
+    # Cluster entropy, completeness, v_score
+    mfcc_2_ecv = metrics.homogeneity_completeness_v_measure(mfcc_ground_labels, mfcc_2_means)
+    mfcc_6_ecv = metrics.homogeneity_completeness_v_measure(mfcc_ground_labels, mfcc_6_means)
+    print("ECV scores:", mfcc_2_ecv, mfcc_6_ecv)
+
+
+    # Run clusterig measures on STFT
+
+    # Cluster purity
+    stft_2_purity = cluster_purity(stft_ground_labels, stft_2_means)
+    stft_6_purity_a = cluster_purity(stft_ground_labels, stft_6_means_a)
+    stft_6_purity_b = cluster_purity(stft_ground_labels, stft_6_means_b)
+    print("Purity scores:", stft_2_purity, stft_6_purity_a, stft_6_purity_b)
+    # Rand score
+    stft_2_rand = metrics.adjusted_rand_score(stft_ground_labels, stft_2_means)
+    stft_6_rand_a = metrics.adjusted_rand_score(stft_ground_labels, stft_6_means_a)
+    stft_6_rand_b = metrics.adjusted_rand_score(stft_ground_labels, stft_6_means_b)
+    print("Rand scores:", stft_2_rand, stft_6_rand_a, stft_6_rand_b)
+    # Cluster entropy, completeness, v_score
+    stft_2_ecv = metrics.homogeneity_completeness_v_measure(stft_ground_labels, stft_2_means)
+    stft_6_ecv_a = metrics.homogeneity_completeness_v_measure(stft_ground_labels, stft_6_means_a)
+    stft_6_ecv_b = metrics.homogeneity_completeness_v_measure(stft_ground_labels, stft_6_means_b)
+    print("ECV scores:", stft_2_ecv, stft_6_ecv_a, stft_6_ecv_b)
+
     
-    print(mfcc_2_score, mfcc_6_score)
+    
 
 
 
