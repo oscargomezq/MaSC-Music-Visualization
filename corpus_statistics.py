@@ -1,6 +1,8 @@
 import os
 import numpy as np
 import pandas as pd
+from sklearn.neighbors import NearestNeighbors
+from utils import save_params, check_repeated_params, unpack_params, user_confirmation, init_unique_id_dict, get_key
 
 
 # Assign each song in the server an artist to use for the analysis
@@ -93,11 +95,109 @@ def perform_metadata_input (ids_csv_path, save_to):
     print()
     print("Total leaf groups:", group_cnt)
 
+# Detect possible duplicate files in the collection using nearest neighbors from a reduced dimensionality dataset
+# Saves csv file with possible duplicate list for each song, return path to this csv file
+def detect_duplicates (ids_dict, params_path_data, params_list_data, n_neighbors = 5):
+	
+	curr_params_data = unpack_params(params_path_data, params_list_data)
+
+	load_from_data = 'small_dataset'
+	for i in params_list_data:
+		load_from_data += '_' + str(i)
+	load_from_data += '.csv'
+	load_from_data = os.path.join(params_path_data[-1], load_from_data)
+
+	save_to = 'possible_duplicates'
+	save_to += '_data_(' + str(params_list_data[0])
+	for i in params_list_data[1:]:
+		save_to += '_' + str(i)
+	save_to += ').csv'
+
+	print("Creating possible duplicates file...")
+	print("Using dataset parameters: " + str(curr_params_data))
+	print("Saving at: " + save_to)
+	print("Loading dataset from: " + load_from_data)
+
+	df_dups = pd.read_csv(load_from_data, names=['UniqueID', 'f1', 'f2'])
+	matrix_2d = df_dups.values[:,1:]
+	
+	neigh = NearestNeighbors(n_neighbors=n_neighbors)
+	neigh.fit(matrix_2d)
+	dist_mat, idx_mat = neigh.kneighbors(matrix_2d)
+
+	for i in range(n_neighbors):
+		df_dups['dist_'+str(i)] = dist_mat[:,i]
+		df_dups['uid_'+str(i)] = [ df_dups.iloc[x,0] for x in idx_mat[:,i] ]
+	
+	df_dups.to_csv(save_to, index=False, header=True)
+
+	return save_to
+
+# For each possible duplicate under a given distance:
+# 1. check the original filepath and mark as duplicate is one is suffix of the other / manually
+# 2. play excerpts to confirm if duplicates
+def mark_duplicates(ids_dict, params_path_data, params_list_data, n_neighbors = 5):
+
+	poss_dups_path = 'possible_duplicates'
+	poss_dups_path += '_data_(' + str(params_list_data[0])
+	for i in params_list_data[1:]:
+		poss_dups_path += '_' + str(i)
+	poss_dups_path += ').csv'
+
+	save_to = poss_dups_path.replace("possible", "confirmed")
+
+	print("Creating confirmed duplicates file...")
+	print("Saving at: " + save_to)
+	print("Loading dataset from: " + poss_dups_path)
+
+	df_dups = pd.read_csv(poss_dups_path)
+	to_drop = ['dist_'+str(x) for x in range(n_neighbors)]
+	to_drop.append('f1')
+	to_drop.append('f2')
+	to_drop.append('uid_0')
+	df_dups = df_dups.drop(to_drop, axis=1)
+
+	dups_dict = dict(zip(df_dups.values[:,0], df_dups.values[:,1:].tolist()))
+	for uid in dups_dict:
+		# for j in dups_dict[uid]:
+		# 	print (j)
+		print(dups_dict[uid])
+
+
+	df_dups.to_csv(save_to, index=False, header=True)
+
 
 if __name__ == "__main__":
     
     # Path to save the file that contains all metadata
     metadata_path = "corpus_statistics.csv"
 
-    perform_metadata_input('CDS-Carlos_song_ids.csv', metadata_path)
+    # Manually input metadata for the collection (artists, years, etc.)
+    # perform_metadata_input('CDS-Carlos_song_ids.csv', metadata_path)
 
+       
+    # Duplicate removal
+
+    # Initialize dictionary for Unique-IDs and names
+    ids_dict = init_unique_id_dict ('CDS-Carlos_song_ids.csv')
+
+    # Local folders for preprocessing parameters
+    preproc_path = 'preprocessing'
+    feature_ext_path = 'full_datasets'
+    mid_dim_path = 'mid_datasets'
+    small_dim_path = 'small_datasets'
+    clustering_path = 'clustering_labels'
+    params_path_data = [preproc_path, feature_ext_path, mid_dim_path, small_dim_path]
+
+    # Define the sets of parameters to use for dataset (has to be from small_datasets)
+    preproc_params = 3
+    feature_ext_params = 1
+    mid_dim_params = 1
+    small_dim_params = 3
+    params_list_data = [preproc_params, feature_ext_params, mid_dim_params, small_dim_params]
+
+    # Compute possible duplicate songs in the collection
+    # poss_dups_path = detect_duplicates (ids_dict, params_path_data, params_list_data)
+
+    # Mark confirmed duplicate songs
+    mark_duplicates(ids_dict, params_path_data, params_list_data)
