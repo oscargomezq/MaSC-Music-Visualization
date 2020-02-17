@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import pandas as pd
+import jellyfish
 from sklearn.neighbors import NearestNeighbors
 from utils import save_params, check_repeated_params, unpack_params, user_confirmation, init_unique_id_dict, get_key
 
@@ -97,7 +98,7 @@ def perform_metadata_input (ids_csv_path, save_to):
 
 # Detect possible duplicate files in the collection using nearest neighbors from a reduced dimensionality dataset
 # Saves csv file with possible duplicate list for each song, return path to this csv file
-def detect_duplicates (ids_dict, params_path_data, params_list_data, n_neighbors = 5):
+def detect_poss_duplicates (ids_dict, params_path_data, params_list_data, n_neighbors = 5):
 	
 	curr_params_data = unpack_params(params_path_data, params_list_data)
 
@@ -125,9 +126,13 @@ def detect_duplicates (ids_dict, params_path_data, params_list_data, n_neighbors
 	neigh.fit(matrix_2d)
 	dist_mat, idx_mat = neigh.kneighbors(matrix_2d)
 
+	df_dups['name'] = [ os.path.split(get_key(df_dups.iloc[j,0], ids_dict))[1] for j in range(idx_mat.shape[0])]
+
 	for i in range(n_neighbors):
-		df_dups['dist_'+str(i)] = dist_mat[:,i]
 		df_dups['uid_'+str(i)] = [ df_dups.iloc[x,0] for x in idx_mat[:,i] ]
+		df_dups['name_'+str(i)] = [ os.path.split(get_key(df_dups.iloc[idx_mat[j,i],0], ids_dict))[1] for j in range(idx_mat.shape[0]) ]
+		df_dups['sound_dist_'+str(i)] = dist_mat[:,i]
+		df_dups['name_dist_'+str(i)] = [ jellyfish.jaro_winkler (df_dups['name'][j], df_dups['name_'+str(i)][j]) for j in range(idx_mat.shape[0]) ]	
 	
 	df_dups.to_csv(save_to, index=False, header=True)
 
@@ -159,45 +164,49 @@ def mark_duplicates(ids_dict, params_path_data, params_list_data, n_neighbors = 
 
 	dups_dict = dict(zip(df_dups.values[:,0], df_dups.values[:,1:].tolist()))
 	for uid in dups_dict:
-		# for j in dups_dict[uid]:
-		# 	print (j)
-		print(dups_dict[uid])
+		print(uid)
+		print(get_key(uid, ids_dict))
+		for j in dups_dict[uid]:
+			print(get_key(j, ids_dict))
+		print()
+		# print(dups_dict[uid])
 
+	return
 
 	df_dups.to_csv(save_to, index=False, header=True)
 
 
 if __name__ == "__main__":
-    
-    # Path to save the file that contains all metadata
-    metadata_path = "corpus_statistics.csv"
 
-    # Manually input metadata for the collection (artists, years, etc.)
-    # perform_metadata_input('CDS-Carlos_song_ids.csv', metadata_path)
+	# Path to save the file that contains all metadata
+	metadata_path = "corpus_statistics.csv"
 
-       
-    # Duplicate removal
+	# Manually input metadata for the collection (artists, years, etc.)
+	# perform_metadata_input('CDS-Carlos_song_ids.csv', metadata_path)
 
-    # Initialize dictionary for Unique-IDs and names
-    ids_dict = init_unique_id_dict ('CDS-Carlos_song_ids.csv')
+	   
+	# Duplicate removal
 
-    # Local folders for preprocessing parameters
-    preproc_path = 'preprocessing'
-    feature_ext_path = 'full_datasets'
-    mid_dim_path = 'mid_datasets'
-    small_dim_path = 'small_datasets'
-    clustering_path = 'clustering_labels'
-    params_path_data = [preproc_path, feature_ext_path, mid_dim_path, small_dim_path]
+	# Initialize dictionary for Unique-IDs and names
+	ids_dict = init_unique_id_dict ('CDS-Carlos_song_ids.csv')
 
-    # Define the sets of parameters to use for dataset (has to be from small_datasets)
-    preproc_params = 3
-    feature_ext_params = 1
-    mid_dim_params = 1
-    small_dim_params = 3
-    params_list_data = [preproc_params, feature_ext_params, mid_dim_params, small_dim_params]
+	# Local folders for preprocessing parameters
+	preproc_path = 'preprocessing'
+	feature_ext_path = 'full_datasets'
+	mid_dim_path = 'mid_datasets'
+	small_dim_path = 'small_datasets'
+	clustering_path = 'clustering_labels'
+	params_path_data = [preproc_path, feature_ext_path, mid_dim_path, small_dim_path]
 
-    # Compute possible duplicate songs in the collection
-    # poss_dups_path = detect_duplicates (ids_dict, params_path_data, params_list_data)
+	# Define the sets of parameters to use for dataset (has to be from small_datasets)
+	preproc_params = 3
+	feature_ext_params = 1
+	mid_dim_params = 1
+	small_dim_params = 3
+	params_list_data = [preproc_params, feature_ext_params, mid_dim_params, small_dim_params]
 
-    # Mark confirmed duplicate songs
-    mark_duplicates(ids_dict, params_path_data, params_list_data)
+	# Compute possible duplicate songs in the collection
+	poss_dups_path = detect_poss_duplicates (ids_dict, params_path_data, params_list_data)
+
+	# Mark confirmed duplicate songs
+	# mark_duplicates(ids_dict, params_path_data, params_list_data)
