@@ -455,7 +455,7 @@ if __name__ == "__main__":
     preproc_params = 3
     feature_ext_params = 1
     mid_dim_params = 1
-    small_dim_params = 3
+    small_dim_params = 4
     params_list_data = [preproc_params, feature_ext_params, mid_dim_params, small_dim_params]
 
     # Define the sets of parameters to use for clustering labels (can be any of full, mid or small datasets on the same branch)

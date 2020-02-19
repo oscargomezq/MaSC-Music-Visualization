@@ -5,6 +5,9 @@ import jellyfish
 from sklearn.neighbors import NearestNeighbors
 from utils import save_params, check_repeated_params, unpack_params, user_confirmation, init_unique_id_dict, get_key
 
+# True if a is a prefix or suffix of b or viceversa
+def is_psfix (a, b):
+	return int(a.startswith(b) or b.startswith(a) or a.endswith(b) or b.endswith(a))
 
 # Assign each song in the server an artist to use for the analysis
 # Prompts the user to assign an artist selected from one of the subfolders in the path
@@ -97,6 +100,7 @@ def perform_metadata_input (ids_csv_path, save_to):
     print("Total leaf groups:", group_cnt)
 
 # Detect possible duplicate files in the collection using nearest neighbors from a reduced dimensionality dataset
+# For each nearest neighbor, record the "sound" distance, "name" distance, and whether it is a suffix or prefix of the other.
 # Saves csv file with possible duplicate list for each song, return path to this csv file
 def detect_poss_duplicates (ids_dict, params_path_data, params_list_data, n_neighbors = 5):
 	
@@ -132,16 +136,19 @@ def detect_poss_duplicates (ids_dict, params_path_data, params_list_data, n_neig
 		df_dups['uid_'+str(i)] = [ df_dups.iloc[x,0] for x in idx_mat[:,i] ]
 		df_dups['name_'+str(i)] = [ os.path.split(get_key(df_dups.iloc[idx_mat[j,i],0], ids_dict))[1] for j in range(idx_mat.shape[0]) ]
 		df_dups['sound_dist_'+str(i)] = dist_mat[:,i]
-		df_dups['name_dist_'+str(i)] = [ jellyfish.jaro_winkler (df_dups['name'][j], df_dups['name_'+str(i)][j]) for j in range(idx_mat.shape[0]) ]	
-	
-	df_dups.to_csv(save_to, index=False, header=True)
+		df_dups['name_dist_'+str(i)] = [ -jellyfish.jaro_winkler (df_dups['name'][j], df_dups['name_'+str(i)][j]) + 1 for j in range(idx_mat.shape[0]) ]	
+		df_dups['is_psfix_'+str(i)] = [ is_psfix (df_dups['name'][j], df_dups['name_'+str(i)][j]) for j in range(idx_mat.shape[0]) ]
+
+	to_drop = ['f1','f2']
+	df_dups = df_dups.drop(to_drop, axis=1)
+	df_dups.to_csv(save_to, index=False, header=True, encoding='utf-8')
 
 	return save_to
 
 # For each possible duplicate under a given distance:
-# 1. check the original filepath and mark as duplicate is one is suffix of the other / manually
+# 1. check the original filepath and mark as duplicate if one is suffix of the other / manually
 # 2. play excerpts to confirm if duplicates
-def mark_duplicates(ids_dict, params_path_data, params_list_data, n_neighbors = 5):
+def mark_duplicate_confidence(ids_dict, params_path_data, params_list_data, n_neighbors = 5):
 
 	poss_dups_path = 'possible_duplicates'
 	poss_dups_path += '_data_(' + str(params_list_data[0])
@@ -155,21 +162,28 @@ def mark_duplicates(ids_dict, params_path_data, params_list_data, n_neighbors = 
 	print("Saving at: " + save_to)
 	print("Loading dataset from: " + poss_dups_path)
 
-	df_dups = pd.read_csv(poss_dups_path)
-	to_drop = ['dist_'+str(x) for x in range(n_neighbors)]
-	to_drop.append('f1')
-	to_drop.append('f2')
-	to_drop.append('uid_0')
-	df_dups = df_dups.drop(to_drop, axis=1)
+	categories = []
+	for st in ["above_st", "below_st"]:
+		for nt in ["above_nt", "below_nt"]:
+			for pt in ["psfix", "not_psfix"]:
+				categories.append(st + "--" + nt + "--" + pt)
 
-	dups_dict = dict(zip(df_dups.values[:,0], df_dups.values[:,1:].tolist()))
-	for uid in dups_dict:
-		print(uid)
-		print(get_key(uid, ids_dict))
-		for j in dups_dict[uid]:
-			print(get_key(j, ids_dict))
-		print()
-		# print(dups_dict[uid])
+	print(categories)
+	df_dups = pd.read_csv(poss_dups_path, encoding="utf-8")
+
+	# Decide confidence thresholds
+	SOUND_D_THR = 0.45 # Could test between 0.3 - 0.6
+	NAME_D_THR = 0.9   # Could test between 0.6 - 0.12 
+	IS_PSFIX = 1	   # 1 = True
+
+	# dups_dict = dict(zip(df_dups.values[:,0], df_dups.values[:,1:].tolist()))
+	# for uid in dups_dict:
+	# 	print(uid)
+	# 	print(get_key(uid, ids_dict))
+	# 	for j in dups_dict[uid]:
+	# 		print(get_key(j, ids_dict))
+	# 	print()
+	# 	# print(dups_dict[uid])
 
 	return
 
@@ -209,4 +223,4 @@ if __name__ == "__main__":
 	poss_dups_path = detect_poss_duplicates (ids_dict, params_path_data, params_list_data)
 
 	# Mark confirmed duplicate songs
-	# mark_duplicates(ids_dict, params_path_data, params_list_data)
+	mark_duplicate_confidence(ids_dict, params_path_data, params_list_data)
