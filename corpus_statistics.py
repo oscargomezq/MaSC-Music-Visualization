@@ -145,10 +145,51 @@ def detect_poss_duplicates (ids_dict, params_path_data, params_list_data, n_neig
 
 	return save_to
 
+# Helper function
+def create_categories ():
+	categories = []
+	for st in ["above_st", "below_st"]:
+		for nt in ["above_nt", "below_nt"]:
+			for pt in ["psfix", "not_psfix"]:
+				categories.append(st + "--" + nt + "--" + pt)
+	return categories
+
+# Helper function
+def assign_category (s, n, ps, st, nt, pst):
+	category = ""
+	category += ("above_st" if s>st else "below_st")
+	category += "--"
+	category += ("above_nt" if n>nt else "below_nt")
+	category += "--"
+	category += ("psfix" if ps==pst else "not_psfix")
+	return category
+
+# For each category decide if it is surely duplicate, surely not, or needs further revision
+def assign_category_outcome (uuid1, uuid2, category):
+
+	# 1 = surely duplicate
+	# -1 = surely not duplicate
+	# 0 = needs further revision
+
+	if category == "below_st--below_nt--psfix":
+		return (-1 if uuid1 == uuid2 else 1) # -1 when it's comparing with itself, 1 if not
+
+	else:
+		poss_cats = [ "below_st--below_nt--not_psfix",
+					  "below_st--above_nt--psfix",
+					  "below_st--above_nt--not_psfix"
+					  "above_st--below_nt--psfix",
+					  "above_st--above_nt--psfix" ]
+
+		imposs_cats = [ "above_st--below_nt--not_psfix",
+					    "above_st--above_nt--not_psfix" ]
+
+		return 0 if (category in poss_cats) else -1
+
 # For each possible duplicate under a given distance:
 # 1. check the original filepath and mark as duplicate if one is suffix of the other / manually
 # 2. play excerpts to confirm if duplicates
-def mark_duplicate_confidence(ids_dict, params_path_data, params_list_data, n_neighbors = 5):
+def mark_duplicate_categories (ids_dict, params_path_data, params_list_data, n_neighbors = 5):
 
 	poss_dups_path = 'possible_duplicates'
 	poss_dups_path += '_data_(' + str(params_list_data[0])
@@ -156,38 +197,76 @@ def mark_duplicate_confidence(ids_dict, params_path_data, params_list_data, n_ne
 		poss_dups_path += '_' + str(i)
 	poss_dups_path += ').csv'
 
-	save_to = poss_dups_path.replace("possible", "confirmed")
+	save_to = poss_dups_path.replace("possible", "categories")
 
-	print("Creating confirmed duplicates file...")
+	print("Creating categories duplicates file...")
 	print("Saving at: " + save_to)
 	print("Loading dataset from: " + poss_dups_path)
 
-	categories = []
-	for st in ["above_st", "below_st"]:
-		for nt in ["above_nt", "below_nt"]:
-			for pt in ["psfix", "not_psfix"]:
-				categories.append(st + "--" + nt + "--" + pt)
-
-	print(categories)
+	categories = create_categories()
 	df_dups = pd.read_csv(poss_dups_path, encoding="utf-8")
 
 	# Decide confidence thresholds
-	SOUND_D_THR = 0.45 # Could test between 0.3 - 0.6
-	NAME_D_THR = 0.9   # Could test between 0.6 - 0.12 
-	IS_PSFIX = 1	   # 1 = True
+	SOUND_D_THR = 0.3  # Could test between 0.3 - 0.6
+	NAME_D_THR = 0.6   # Could test between 0.6 - 0.12 
+	IS_PSFIX_THR = True	   # True
 
-	# dups_dict = dict(zip(df_dups.values[:,0], df_dups.values[:,1:].tolist()))
-	# for uid in dups_dict:
-	# 	print(uid)
-	# 	print(get_key(uid, ids_dict))
-	# 	for j in dups_dict[uid]:
-	# 		print(get_key(j, ids_dict))
-	# 	print()
-	# 	# print(dups_dict[uid])
+	for i in range(n_neighbors):
+		df_dups['cat_'+str(i)] = [ assign_category( df_dups['sound_dist_'+str(i)][j], df_dups['name_dist_'+str(i)][j], df_dups['is_psfix_'+str(i)][j], SOUND_D_THR, NAME_D_THR, IS_PSFIX_THR) for j in range(len(df_dups)) ]
+		df_dups['result_'+str(i)] = [ assign_category_outcome( df_dups['UniqueID'][j], df_dups['uid_'+str(i)][j], df_dups['cat_'+str(i)][j]) for j in range(len(df_dups)) ]
 
-	return
+		print (df_dups['cat_'+str(i)].value_counts())
+		print()
+		print (df_dups['result_'+str(i)].value_counts())
 
 	df_dups.to_csv(save_to, index=False, header=True)
+
+def mark_confirmed_duplicates (ids_dict, params_path_data, params_list_data, n_neighbors = 5):
+
+	poss_dups_path = 'possible_duplicates'
+	poss_dups_path += '_data_(' + str(params_list_data[0])
+	for i in params_list_data[1:]:
+		poss_dups_path += '_' + str(i)
+	poss_dups_path += ').csv'
+
+	load_from = poss_dups_path.replace("possible", "categories")
+	save_to_conf = poss_dups_path.replace("possible", "confirmed")
+	save_to_maybe = poss_dups_path.replace("possible", "maybe")
+
+	print("Creating confirmed / maybe duplicates file...")
+	print("Saving at: " + save_to_conf + " / " + save_to_maybe)
+	print("Loading dataset from: " + load_from)
+
+	df_dups = pd.read_csv(load_from, encoding="utf-8")
+
+	dups_set = set({})
+	maybe_set = set({})
+	conf_dups = []
+	maybe_dups = []
+	for row in df_dups.itertuples(index=False):
+		uuid1 = row[df_dups.columns.get_loc('UniqueID')]
+		name1 = row[df_dups.columns.get_loc('name')]
+		for i in range(n_neighbors):
+			uuid2 = row[df_dups.columns.get_loc('uid_'+str(i))]
+			name2 = row[df_dups.columns.get_loc('name_'+str(i))]
+			sound_dist = row[df_dups.columns.get_loc('sound_dist_'+str(i))]
+			name_dist = row[df_dups.columns.get_loc('name_dist_'+str(i))]
+			is_psfix = row[df_dups.columns.get_loc('is_psfix_'+str(i))]
+			cat = row[df_dups.columns.get_loc('cat_'+str(i))]
+			res = row[df_dups.columns.get_loc('result_'+str(i))]
+			if (res == 1) and ( (uuid1, uuid2) not in dups_set ) and ( (uuid2, uuid1) not in dups_set ):
+				dups_set.add( (uuid1, uuid2) )
+				conf_dups.append ([uuid1, uuid2, name1, name2, sound_dist, name_dist, is_psfix, cat, res])
+			elif (res == 0) and ( (uuid1, uuid2) not in maybe_set ) and ( (uuid2, uuid1) not in maybe_set ):
+				maybe_set.add( (uuid1, uuid2) )
+				maybe_dups.append ([uuid1, uuid2, name1, name2, sound_dist, name_dist, is_psfix, cat, res])
+
+	df_conf = pd.DataFrame(conf_dups, columns = ['uid_1', 'uid_2', 'name1', 'name2', 'sound_dist', 'name_dist', 'is_psfix', 'cat', 'res'])
+	df_maybe = pd.DataFrame(maybe_dups, columns = ['uid_1', 'uid_2', 'name1', 'name2', 'sound_dist', 'name_dist', 'is_psfix', 'cat', 'res'])
+
+	df_conf.to_csv(save_to_conf, index=False, header=True)
+	df_maybe.to_csv(save_to_maybe, index=False, header=True)
+
 
 
 if __name__ == "__main__":
@@ -220,7 +299,12 @@ if __name__ == "__main__":
 	params_list_data = [preproc_params, feature_ext_params, mid_dim_params, small_dim_params]
 
 	# Compute possible duplicate songs in the collection
-	poss_dups_path = detect_poss_duplicates (ids_dict, params_path_data, params_list_data)
+	# detect_poss_duplicates (ids_dict, params_path_data, params_list_data)
+
+	# Mark categories for possible duplicates
+	# mark_duplicate_categories(ids_dict, params_path_data, params_list_data)
 
 	# Mark confirmed duplicate songs
-	mark_duplicate_confidence(ids_dict, params_path_data, params_list_data)
+	mark_confirmed_duplicates(ids_dict, params_path_data, params_list_data)
+
+
