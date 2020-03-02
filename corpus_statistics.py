@@ -101,7 +101,7 @@ def perform_metadata_input (ids_csv_path, save_to):
 
 # Detect possible duplicate files in the collection using nearest neighbors from a reduced dimensionality dataset
 # For each nearest neighbor, record the "sound" distance, "name" distance, and whether it is a suffix or prefix of the other.
-# Saves csv file with possible duplicate list for each song, return path to this csv file
+# Saves csv file with possible duplicate list for each song
 def detect_poss_duplicates (ids_dict, params_path_data, params_list_data, n_neighbors = 5):
 	
 	curr_params_data = unpack_params(params_path_data, params_list_data)
@@ -143,8 +143,6 @@ def detect_poss_duplicates (ids_dict, params_path_data, params_list_data, n_neig
 	df_dups = df_dups.drop(to_drop, axis=1)
 	df_dups.to_csv(save_to, index=False, header=True, encoding='utf-8')
 
-	return save_to
-
 # Helper function
 def create_categories ():
 	categories = []
@@ -154,7 +152,7 @@ def create_categories ():
 				categories.append(st + "--" + nt + "--" + pt)
 	return categories
 
-# Helper function
+# Helper function returning the category as a string
 def assign_category (s, n, ps, st, nt, pst):
 	category = ""
 	category += ("above_st" if s>st else "below_st")
@@ -177,7 +175,7 @@ def assign_category_outcome (uuid1, uuid2, category):
 	else:
 		poss_cats = [ "below_st--below_nt--not_psfix",
 					  "below_st--above_nt--psfix",
-					  "below_st--above_nt--not_psfix"
+					  "below_st--above_nt--not_psfix",
 					  "above_st--below_nt--psfix",
 					  "above_st--above_nt--psfix" ]
 
@@ -186,9 +184,10 @@ def assign_category_outcome (uuid1, uuid2, category):
 
 		return 0 if (category in poss_cats) else -1
 
-# For each possible duplicate under a given distance:
-# 1. check the original filepath and mark as duplicate if one is suffix of the other / manually
-# 2. play excerpts to confirm if duplicates
+# For each possible duplicate mark the category it belongs to according to the thresholds it passes in:
+# 1. Sound distance: Euclidean distance in the 2D projection
+# 2. Name distance: Jaro-Winkler distance between the filenames
+# 3. Suffix of prefix: If one filename is a p(s)-fix of the other
 def mark_duplicate_categories (ids_dict, params_path_data, params_list_data, n_neighbors = 5):
 
 	poss_dups_path = 'possible_duplicates'
@@ -207,9 +206,9 @@ def mark_duplicate_categories (ids_dict, params_path_data, params_list_data, n_n
 	df_dups = pd.read_csv(poss_dups_path, encoding="utf-8")
 
 	# Decide confidence thresholds
-	SOUND_D_THR = 0.3  # Could test between 0.3 - 0.6
-	NAME_D_THR = 0.6   # Could test between 0.6 - 0.12 
-	IS_PSFIX_THR = True	   # True
+	SOUND_D_THR = 0.3    # Could test between 0.3 - 0.6
+	NAME_D_THR = 0.6     # Could test between 0.6 - 0.12 
+	IS_PSFIX_THR = True
 
 	for i in range(n_neighbors):
 		df_dups['cat_'+str(i)] = [ assign_category( df_dups['sound_dist_'+str(i)][j], df_dups['name_dist_'+str(i)][j], df_dups['is_psfix_'+str(i)][j], SOUND_D_THR, NAME_D_THR, IS_PSFIX_THR) for j in range(len(df_dups)) ]
@@ -221,6 +220,7 @@ def mark_duplicate_categories (ids_dict, params_path_data, params_list_data, n_n
 
 	df_dups.to_csv(save_to, index=False, header=True)
 
+# Create summary csv's for confirmed and possible duplicates
 def mark_confirmed_duplicates (ids_dict, params_path_data, params_list_data, n_neighbors = 5):
 
 	poss_dups_path = 'possible_duplicates'
@@ -267,7 +267,46 @@ def mark_confirmed_duplicates (ids_dict, params_path_data, params_list_data, n_n
 	df_conf.to_csv(save_to_conf, index=False, header=True)
 	df_maybe.to_csv(save_to_maybe, index=False, header=True)
 
+# Manually check (play) the possible duplicates for the user to decide if they are
+def check_possible_duplicates (ids_dict, params_path_data, params_list_data):
 
+	poss_dups_path = 'possible_duplicates'
+	poss_dups_path += '_data_(' + str(params_list_data[0])
+	for i in params_list_data[1:]:
+		poss_dups_path += '_' + str(i)
+	poss_dups_path += ').csv'
+
+	load_from = poss_dups_path.replace("possible", "maybe")
+	save_to_maybe = poss_dups_path.replace("possible", "checked")
+
+	print("Creating checked duplicates file...")
+	print("Saving at: " + save_to_maybe)
+	print("Loading dataset from: " + load_from)
+
+	if not os.path.exists(save_to_maybe):
+		df_maybe = pd.read_csv(load_from, encoding="utf-8")
+		df_maybe['to_keep'] = -1
+		df_maybe.to_csv(save_to_maybe, index=False, header=True)
+	else:
+		df_maybe = pd.read_csv(save_to_maybe, encoding="utf-8")
+
+	to_keep = df_maybe['to_keep'].tolist()
+	start = df_maybe[df_maybe['to_keep']==-1].index.values[0]
+	for i in range(start, len(df_maybe)):
+		df_maybe.at[i,'to_keep'] = check_single_dup(df_maybe.iloc[[i]])
+		df_maybe.to_csv(save_to_maybe, index=False, header=True)	
+
+	# df_conf = pd.DataFrame(conf_dups, columns = ['uid_1', 'uid_2', 'name1', 'name2', 'sound_dist', 'name_dist', 'is_psfix', 'cat', 'res'])
+	# df_maybe = pd.DataFrame(maybe_dups, columns = ['uid_1', 'uid_2', 'name1', 'name2', 'sound_dist', 'name_dist', 'is_psfix', 'cat', 'res'])
+
+	# df_conf.to_csv(save_to_conf, index=False, header=True)
+	# df_maybe.to_csv(save_to_maybe, index=False, header=True)
+
+# Helper
+def check_single_dup (row):
+	print('UID 1:', row['uid_1'])
+	print('UID 2:', row['uid_2'])
+	print(row)
 
 if __name__ == "__main__":
 
@@ -305,6 +344,9 @@ if __name__ == "__main__":
 	# mark_duplicate_categories(ids_dict, params_path_data, params_list_data)
 
 	# Mark confirmed duplicate songs
-	mark_confirmed_duplicates(ids_dict, params_path_data, params_list_data)
+	# mark_confirmed_duplicates(ids_dict, params_path_data, params_list_data)
+
+	# Check maybe duplicate songs
+	check_possible_duplicates (ids_dict, params_path_data, params_list_data)
 
 
