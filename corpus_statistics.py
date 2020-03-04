@@ -2,6 +2,8 @@ import os
 import numpy as np
 import pandas as pd
 import jellyfish
+import pygame
+import time
 from sklearn.neighbors import NearestNeighbors
 from utils import save_params, check_repeated_params, unpack_params, user_confirmation, init_unique_id_dict, get_key
 
@@ -268,7 +270,7 @@ def mark_confirmed_duplicates (ids_dict, params_path_data, params_list_data, n_n
 	df_maybe.to_csv(save_to_maybe, index=False, header=True)
 
 # Manually check (play) the possible duplicates for the user to decide if they are
-def check_possible_duplicates (ids_dict, params_path_data, params_list_data):
+def check_possible_duplicates (ids_dict, params_path_data, params_list_data, local_clips_path):
 
 	poss_dups_path = 'possible_duplicates'
 	poss_dups_path += '_data_(' + str(params_list_data[0])
@@ -277,36 +279,61 @@ def check_possible_duplicates (ids_dict, params_path_data, params_list_data):
 	poss_dups_path += ').csv'
 
 	load_from = poss_dups_path.replace("possible", "maybe")
-	save_to_maybe = poss_dups_path.replace("possible", "checked")
+	save_to_checked = poss_dups_path.replace("possible", "checked")
 
 	print("Creating checked duplicates file...")
-	print("Saving at: " + save_to_maybe)
+	print("Saving at: " + save_to_checked)
 	print("Loading dataset from: " + load_from)
 
-	if not os.path.exists(save_to_maybe):
-		df_maybe = pd.read_csv(load_from, encoding="utf-8")
-		df_maybe['to_keep'] = -1
-		df_maybe.to_csv(save_to_maybe, index=False, header=True)
+	if not os.path.exists(save_to_checked):
+		df_checked = pd.read_csv(load_from, encoding="utf-8")
+		df_checked['to_keep'] = -1
+		df_checked.to_csv(save_to_checked, index=False, header=True)
 	else:
-		df_maybe = pd.read_csv(save_to_maybe, encoding="utf-8")
+		df_checked = pd.read_csv(save_to_checked, encoding="utf-8")
 
-	to_keep = df_maybe['to_keep'].tolist()
-	start = df_maybe[df_maybe['to_keep']==-1].index.values[0]
-	for i in range(start, len(df_maybe)):
-		df_maybe.at[i,'to_keep'] = check_single_dup(df_maybe.iloc[[i]])
-		df_maybe.to_csv(save_to_maybe, index=False, header=True)	
+	pygame.init()
+	to_keep = df_checked['to_keep'].tolist()
+	start = df_checked[df_checked['to_keep']==-1].index.values[0]
+	for i in range(start, len(df_checked)):
+		df_checked.at[i,'to_keep'] = check_single_dup(ids_dict, df_checked.iloc[[i]], local_clips_path)
+		df_checked.at[i,'res'] = -1 if df_checked.at[i,'to_keep']==2 else 1
+		df_checked.to_csv(save_to_checked, index=False, header=True)	
 
-	# df_conf = pd.DataFrame(conf_dups, columns = ['uid_1', 'uid_2', 'name1', 'name2', 'sound_dist', 'name_dist', 'is_psfix', 'cat', 'res'])
-	# df_maybe = pd.DataFrame(maybe_dups, columns = ['uid_1', 'uid_2', 'name1', 'name2', 'sound_dist', 'name_dist', 'is_psfix', 'cat', 'res'])
+# Display the information for both possible duplicate tracks
+# Play an excerpt of both and take user input on whether it is duplicate
+def check_single_dup (ids_dict, row, local_clips_path):
+	print("------------------------------------------------------------------------")
+	print('UID 0:', row['uid_1'].to_string(index=False))
+	print('UID 1:', row['uid_2'].to_string(index=False))
+	print()
+	print('Path 0:', get_key (row['uid_1'].to_string(index=False).strip(), ids_dict))
+	print('Path 1:', get_key (row['uid_2'].to_string(index=False).strip(), ids_dict))
+	print()
+	print('IS PFXIX' if row['is_psfix'].to_string(index=False).strip()=='1' else 'NOT PSFIX')
+	print()
+	print('Name distance:', row['name_dist'].to_string(index=False))
+	print()
+	print('Sound Distance:', row['sound_dist'].to_string(index=False))
+	while True:
+		play_songs(row['uid_1'].to_string(index=False).strip(), row['uid_2'].to_string(index=False).strip(), local_clips_path)
+		keep = user_confirmation("Enter 0 to keep the first song, 1 to keep the second, 2 to keep both, or anything else to repeat")
+		if keep in ['0', '1', '2']:
+			return int(keep)	
 
-	# df_conf.to_csv(save_to_conf, index=False, header=True)
-	# df_maybe.to_csv(save_to_maybe, index=False, header=True)
+# Play an excerpt of the songs with the ids
+def play_songs(id1, id2, local_clips_path):
+	j=0
+	for idd in [id1, id2]:
+		print("Playing song", j)
+		pygame.mixer.music.load(os.path.join(local_clips_path, idd + '.wav' ))
+		pygame.mixer.music.play()
+		time.sleep(1.5)
+		pygame.mixer.music.stop()
+		time.sleep(0.2)
+		j+=1
+		# pygame.mixer.music.unload()
 
-# Helper
-def check_single_dup (row):
-	print('UID 1:', row['uid_1'])
-	print('UID 2:', row['uid_2'])
-	print(row)
 
 if __name__ == "__main__":
 
@@ -347,6 +374,7 @@ if __name__ == "__main__":
 	# mark_confirmed_duplicates(ids_dict, params_path_data, params_list_data)
 
 	# Check maybe duplicate songs
-	check_possible_duplicates (ids_dict, params_path_data, params_list_data)
+	local_clips_path = '/Users/masc/Documents/Oscar/MaSC-Music-Visualization-master/middle_15/'
+	check_possible_duplicates (ids_dict, params_path_data, params_list_data, local_clips_path)
 
 
