@@ -49,7 +49,7 @@ def extract_spectrogram (save_to_path, audio_path, **kwargs):
 
         full_duration = librosa.get_duration(filename=filedir)
 
-        # Compute MFCC features for the first sets
+        # Compute Spectogram STFT features
         y, sr = librosa.load(filedir, offset = (full_duration/2) - d['duration']/2, duration = d['duration'], sr = d['sr'])
         S = np.abs(librosa.stft(y, hop_length=d['hop_length']))
         log_S = librosa.power_to_db(S**2)

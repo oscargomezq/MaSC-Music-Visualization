@@ -59,6 +59,9 @@ def song_subset (audio_path, server_subpaths='All', ids_dict=None):
                     s_subset.append((unique_id, filedir))
         return set(s_subset)
 
+    elif server_subpaths == 'Remove duplicates':
+        pass
+
 
 if __name__ == "__main__":
 

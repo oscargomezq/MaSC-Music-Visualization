@@ -307,8 +307,10 @@ def check_single_dup (ids_dict, row, local_clips_path):
 	print('UID 0:', row['uid_1'].to_string(index=False))
 	print('UID 1:', row['uid_2'].to_string(index=False))
 	print()
-	print('Path 0:', get_key (row['uid_1'].to_string(index=False).strip(), ids_dict))
-	print('Path 1:', get_key (row['uid_2'].to_string(index=False).strip(), ids_dict))
+	path_0 = get_key (row['uid_1'].to_string(index=False).strip(), ids_dict)
+	path_1 = get_key (row['uid_2'].to_string(index=False).strip(), ids_dict)
+	print('Path 0:', path_0)
+	print('Path 1:', path_1)
 	print()
 	print('IS PFXIX' if row['is_psfix'].to_string(index=False).strip()=='1' else 'NOT PSFIX')
 	print()
@@ -317,9 +319,14 @@ def check_single_dup (ids_dict, row, local_clips_path):
 	print('Sound Distance:', row['sound_dist'].to_string(index=False))
 	while True:
 		play_songs(row['uid_1'].to_string(index=False).strip(), row['uid_2'].to_string(index=False).strip(), local_clips_path)
-		keep = user_confirmation("Enter 0 to keep the first song, 1 to keep the second, 2 to keep both, or anything else to repeat")
-		if keep in ['0', '1', '2']:
-			return int(keep)	
+		keep = user_confirmation("Enter 1 to keep one song (duplicates), 2 to keep both (not duplicates), or anything else to repeat")
+		if keep not in ['1', '2']:
+			continue
+		# TO DO: Change to automatic extraction of which to keep
+		if keep == '1':
+			keep = longer_path(path_0, path_1)
+
+		return int(keep)	
 
 # Play an excerpt of the songs with the ids
 def play_songs(id1, id2, local_clips_path):
@@ -334,6 +341,49 @@ def play_songs(id1, id2, local_clips_path):
 		j+=1
 		# pygame.mixer.music.unload()
 
+# Return which index has the longest path
+def longer_path(p0, p1):
+	p0, p1 = os.path.normpath(p0), os.path.normpath(p1)
+	l0, l1 = p0.count('/'), p1.count('/')
+	if l0 != l1:
+		return 0 if l0>l1 else 1
+	return 0 if len(p0)>len(p1) else 1
+
+# Determine which index to keep based on the paths corresponding to each uid
+def to_keep(uid_0, uid_1, ids_dict):
+	return longer_path (get_key(uid_0, ids_dict), get_key(uid_1, ids_dict))
+
+# Create song_ids csv without duplicates
+# Takes the confirmed duplicates and checked duplicates files and keeps the one on the longest subpath for each pair (more information)
+def no_duplicates_ids (ids_dict, params_path_data, params_list_data, local_clips_path):
+
+	poss_dups_path = 'possible_duplicates'
+	poss_dups_path += '_data_(' + str(params_list_data[0])
+	for i in params_list_data[1:]:
+		poss_dups_path += '_' + str(i)
+	poss_dups_path += ').csv'
+
+	load_from_confirmed = poss_dups_path.replace("possible", "confirmed")
+	load_from_checked = poss_dups_path.replace("possible", "checked")
+	save_to_no_duplicates = "CDS-Carlos_song_ids_no_duplicates" + poss_dups_path.replace("possible_duplicates", "")
+
+	print("Creating no duplicates song ids file...")
+	print("Saving at: " + save_to_no_duplicates)
+	print("Loading datasets from: " + load_from_confirmed, load_from_checked)
+
+	to_remove_ids = set({})
+	
+	df_confirmed = pd.read_csv(load_from_confirmed, encoding="utf-8")
+	df_confirmed['to_keep'] = to_keep(df_confirmed['uid_1'], df_confirmed['uid_2'], ids_dict)
+	df_confirmed['to_remove'] = df_confirmed['uid_1'] if df_confirmed['to_keep']==1 else df_confirmed['uid_2']
+	to_remove_ids.add(df_confirmed['to_remove'].tolist())
+
+	df_checked = pd.read_csv(load_from_checked, encoding="utf-8")
+	df_checked['to_remove'] = df_checked['uid_1'] if df_checked['to_keep']==1 else (df_checked['uid_2'] if df_checked['to_keep']==0 else 'none')
+	to_remove_ids.add(df_checked['to_remove'].tolist())
+
+	return to_remove_ids
+		
 
 if __name__ == "__main__":
 
@@ -376,5 +426,4 @@ if __name__ == "__main__":
 	# Check maybe duplicate songs
 	local_clips_path = '/Users/masc/Documents/Oscar/MaSC-Music-Visualization-master/middle_15/'
 	check_possible_duplicates (ids_dict, params_path_data, params_list_data, local_clips_path)
-
 
